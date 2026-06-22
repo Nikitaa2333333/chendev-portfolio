@@ -1,0 +1,36 @@
+---
+const links = [
+  ['Email', 'mailto:chendev2003@gmail.com'],
+  ['Telegram', 'https://t.me/'],
+  ['GitHub', 'https://github.com/'],
+];
+---
+
+<section class="contact" id="contact">
+  <div class="container">
+    <h2 class="contact__title">
+      Есть проект?<br /><span class="contact__mark">Давайте обсудим.</span>
+    </h2>
+    <p class="contact__lead">
+      Напишите пару слов о задаче — отвечу в течение пары дней.
+    </p>
+    <div class="contact__row">
+      <a class="btn btn--paper" href="mailto:chendev2003@gmail.com">Написать письмо</a>
+      <div class="contact__links">
+        {links.map(([label, href]) => <a class="contact__link" href={href}>{label}</a>)}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact { padding: var(--spacing-120) 0; background: var(--color-accent); color: var(--color-paper-white); }
+  .contact__title { font-size: var(--text-h1); line-height: var(--lh-h1); letter-spacing: var(--tr-h1); font-weight: var(--fw-black); margin: 0 0 var(--spacing-24); color: var(--color-paper-white); }
+  .contact__mark { background: var(--color-paper-white); color: var(--color-ink-black); padding: 0 0.08em; }
+  .contact__lead { font-size: var(--text-lead); font-weight: var(--fw-medium); margin: 0 0 var(--spacing-40); max-width: 44ch; color: var(--color-paper-white); }
+  .contact__row { display: flex; align-items: center; gap: var(--spacing-32); flex-wrap: wrap; }
+  .btn--paper { background: var(--color-paper-white); color: var(--color-ink-black); border: none; }
+  .contact__links { display: flex; gap: var(--spacing-24); flex-wrap: wrap; }
+  .contact__link { color: var(--color-paper-white); font-weight: var(--fw-medium); text-decoration: underline; text-underline-offset: 4px; }
+  @media (max-width: 719px) { .contact__title { font-size: 44px; } }
+</style>

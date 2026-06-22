@@ -1,0 +1,155 @@
+---
+import { works, categories } from '@/data/works';
+
+// группируем по рядам (как .p-v3-grid-line у Лебедева). Сумма юнитов в ряду = 4.
+const rowNums = [...new Set(works.map((w) => w.row))].sort((a, b) => a - b);
+const rows = rowNums.map((n) => ({
+  n,
+  items: works.filter((w) => w.row === n),
+}));
+
+// размер → число юнитов сетки (small = 1, middle = 2). Снято замером с artlebedev.ru.
+const units = (size: string) => (size === 'middle' ? 2 : 1);
+---
+
+<section class="works" id="works">
+  <div class="works__wrap">
+    <h2 class="works__title">Работы</h2>
+
+    <ul class="works__filter" aria-label="Фильтр по категориям">
+      {categories.map((c, i) => (
+        <li class="works__chip" aria-pressed={i === 0 ? 'true' : 'false'}>{c}</li>
+      ))}
+    </ul>
+
+    <div class="works__grid">
+      {rows.map((row) => (
+        <div class="row">
+          {row.items.map((w) => (
+            <a
+              class="tile"
+              href={`/works/${w.slug}`}
+              data-category={w.category}
+              data-size={w.size}
+              style={`--u:${units(w.size)}; --surface:${w.surface}`}
+            >
+              {w.video ? (
+                <video class="tile__fill" autoplay muted loop playsinline preload="metadata" poster={w.poster}>
+                  <source src={w.video} type="video/mp4" />
+                </video>
+              ) : w.image ? (
+                <img class="tile__fill" src={w.image} alt={w.title} loading="lazy" />
+              ) : null}
+
+              <div class="tile__grad"></div>
+              <div class="tile__cap">
+                <p class="tile__title">{w.title}</p>
+                <span class="tile__meta">{w.client} · {w.year}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .works { padding: var(--spacing-80) 0 var(--spacing-96); }
+  .works__wrap { width: 100%; padding: 0 15px; }
+  .works__title { font-size: var(--text-h2); margin: var(--spacing-4) 0 var(--spacing-24); }
+
+  .works__filter {
+    list-style: none; margin: 0 0 var(--spacing-32); padding: 0;
+    display: flex; flex-wrap: wrap; gap: var(--spacing-8);
+  }
+  .works__chip {
+    font-size: var(--text-caption);
+    color: var(--color-ink-black); background: var(--color-paper-white);
+    border: var(--border-w) solid var(--color-ink-black);
+    padding: 8px 14px; border-radius: var(--radius-pill); cursor: pointer;
+  }
+  .works__chip[aria-pressed="true"] { background: var(--color-ink-black); color: var(--color-paper-white); }
+
+  /* ============================================================
+     Сетка работ — модель artlebedev.ru (v5), снята замером в браузере.
+     Ряд = flex-строка, сумма юнитов = 4. Плитка занимает --u юнитов
+     по ширине (flex: --u 1 0). Высота приходит из aspect-ratio:
+       small  (1 юнит) → AR 0.649  (≈2:3, портрет)
+       middle (2 юнита) → AR 1.298 (≈4:3, ландшафт)
+     AR пропорционален числу юнитов (--u × 0.649), поэтому ВСЕ плитки
+     ряда автоматически одной высоты → ряды стыкуются без дыр.
+     База 0.649 = 370/570 (1 юнит ширины / высота ряда у оригинала).
+     ============================================================ */
+  .works__grid { display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; align-items: flex-start; gap: 8px; }
+
+  .tile {
+    flex: var(--u) 1 0;
+    min-width: 0;
+    aspect-ratio: calc(var(--u) * 0.649);
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    text-decoration: none;
+    color: var(--color-paper-white);
+    display: block;
+    /* без hover-зума / тени / подъёма — плоско и строго, как artlebedev.
+       «Живость» даёт сам медиа (gif/video), а не CSS. */
+  }
+  .tile__fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* градиент снизу — картинка/видео утопает в цвет плитки, подпись читается.
+     Совпадает с оригиналом: прозрачно сверху → ~0.8 на 77% → solid у низа.
+     (Исключение из «без прозрачностей» — градиент для читабельности.) */
+  .tile__grad {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to top,
+      var(--surface) 0%,                                          /* у низа — solid бренд-цвет */
+      color-mix(in srgb, var(--surface) 80%, transparent) 23%,   /* разгон до 0.8 (как 77% от верха) */
+      transparent 83%                                            /* плоская чистая зона сверху */
+    );
+  }
+  .tile__cap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: var(--spacing-16);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .tile__title { margin: 0; font-size: var(--text-lead); font-weight: var(--fw-medium); line-height: 1.2; }
+  .tile__meta { font-size: var(--text-caption); font-weight: var(--fw-medium); }
+
+  /* ---- Адаптив ---- */
+  /* Планшет: те же ряды, AR работает сам (высота тянется от ширины). */
+  @media (max-width: 1079px) {
+    .works__grid { gap: 6px; }
+    .row { gap: 6px; }
+  }
+  /* Мобайл: ряд → колонка, каждая плитка во всю ширину, единый AR. */
+  @media (max-width: 639px) {
+    .row { flex-direction: column; }
+    .tile { aspect-ratio: 1.4; }
+    .tile__title { font-size: var(--text-body); }
+  }
+</style>
+
+<script>
+  function bindFilter() {
+    const chips = Array.from(document.querySelectorAll<HTMLElement>('.works__chip'));
+    const tiles = Array.from(document.querySelectorAll<HTMLElement>('.tile'));
+    if (!chips.length) return;
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const cat = chip.textContent?.trim() ?? 'Все';
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        tiles.forEach((t) => {
+          const show = cat === 'Все' || t.dataset.category === cat;
+          t.style.display = show ? '' : 'none';
+        });
+      });
+    });
+  }
+  bindFilter();
+  document.addEventListener('astro:page-load', bindFilter);
+</script>

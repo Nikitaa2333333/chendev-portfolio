@@ -1,0 +1,152 @@
+---
+const links = [
+  { href: '#works', label: 'Работы' },
+  { href: '#about', label: 'Обо мне' },
+  { href: '#process', label: 'Процесс' },
+  { href: '#testimonials', label: 'Отзывы' },
+  { href: '#contact', label: 'Контакты' },
+];
+---
+
+<div class="navwrap" transition:persist="nav">
+  <nav class="pill" aria-label="Основная навигация">
+    <a href="/" class="pill__brand">
+      <span class="pill__mark" aria-hidden="true"></span>
+      <span class="pill__name">[Имя]</span>
+    </a>
+
+    <ul class="pill__links">
+      {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+    </ul>
+
+    <div class="pill__actions">
+      <a href="#contact" class="pill__cta">Связаться</a>
+      <button class="pill__burger" aria-label="Меню" aria-expanded="false" data-burger>
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <ul class="drawer" data-drawer hidden>
+    {links.map((l) => <li><a href={l.href} data-drawer-link>{l.label}</a></li>)}
+  </ul>
+</div>
+
+<style>
+  .navwrap {
+    position: sticky;
+    top: 16px;
+    z-index: 50;
+    padding: 0 16px;
+    margin-bottom: -72px; /* чтобы пилюля «висела» над контентом */
+  }
+
+  .pill {
+    max-width: 920px;
+    margin: 0 auto;
+    height: 56px;
+    background: var(--color-ink-black);
+    color: var(--color-paper-white);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  .pill__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-paper-white);
+    text-decoration: none;
+  }
+  .pill__mark {
+    width: 22px; height: 22px; border-radius: 5px;
+    background:
+      linear-gradient(var(--color-accent) 0 0) 0/4px 100% no-repeat,
+      linear-gradient(#7aa6da 0 0) 6px/4px 100% no-repeat,
+      linear-gradient(var(--color-paper-white) 0 0) 12px/4px 100% no-repeat,
+      linear-gradient(#9db8e0 0 0) 18px/4px 100% no-repeat,
+      var(--color-accent-900);
+  }
+  .pill__name { font-weight: var(--fw-bold); font-size: 16px; letter-spacing: 0; }
+
+  .pill__links {
+    list-style: none; margin: 0; padding: 0;
+    display: none; gap: 22px;
+  }
+  .pill__links a {
+    color: var(--color-paper-white);
+    text-decoration: none; font-size: 15px; font-weight: var(--fw-medium);
+    opacity: 0.85;
+  }
+  .pill__links a:hover { opacity: 1; }
+
+  .pill__actions { display: flex; align-items: center; gap: 8px; }
+  .pill__cta {
+    background: var(--color-paper-white);
+    color: var(--color-ink-black);
+    font-weight: var(--fw-medium); font-size: 15px;
+    text-decoration: none;
+    padding: 10px 18px; border-radius: 999px;
+  }
+
+  .pill__burger {
+    width: 40px; height: 40px;
+    display: inline-flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+    background: transparent; border: none; cursor: pointer; padding: 0;
+    border-radius: 999px;
+  }
+  .pill__burger span {
+    width: 18px; height: 2px; background: var(--color-paper-white);
+    border-radius: 2px; transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .pill__burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .pill__burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .pill__burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Мобильное выпадающее меню */
+  .drawer {
+    list-style: none; margin: 12px auto 0; padding: 12px;
+    max-width: 920px;
+    background: var(--color-ink-black);
+    color: var(--color-paper-white);
+    border-radius: 24px;
+    display: grid; gap: 4px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  }
+  .drawer a {
+    display: block; color: var(--color-paper-white); text-decoration: none;
+    font-weight: var(--fw-semibold); font-size: 18px;
+    padding: 12px 16px; border-radius: 14px;
+  }
+  .drawer a:hover { background: var(--color-accent-900); }
+
+  @media (min-width: 860px) {
+    .pill__links { display: flex; }
+    .pill__burger { display: none; }
+    .drawer { display: none !important; }
+  }
+</style>
+
+<script>
+  function bindBurger() {
+    const burger = document.querySelector<HTMLButtonElement>('[data-burger]');
+    const drawer = document.querySelector<HTMLElement>('[data-drawer]');
+    if (!burger || !drawer) return;
+
+    const close = () => { burger.setAttribute('aria-expanded', 'false'); drawer.hidden = true; };
+    burger.addEventListener('click', () => {
+      const open = burger.getAttribute('aria-expanded') === 'true';
+      burger.setAttribute('aria-expanded', String(!open));
+      drawer.hidden = open;
+    });
+    drawer.querySelectorAll('[data-drawer-link]').forEach((a) => a.addEventListener('click', close));
+  }
+  bindBurger();
+  document.addEventListener('astro:page-load', bindBurger);
+</script>

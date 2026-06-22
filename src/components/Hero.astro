@@ -1,0 +1,58 @@
+---
+// Реальный hero — первый драфт. Редактируй текст прямо тут.
+---
+
+<section class="hero" id="hero">
+  <div class="container">
+    <span class="mono hero__eyebrow">Портфолио · дизайн и разработка</span>
+
+    <h1 class="hero__title">
+      Делаю продукты,<br />
+      которые <span class="hero__mark">работают</span><br />
+      и хорошо выглядят.
+    </h1>
+
+    <p class="hero__lead">
+      Меня зовут [Имя]. Проектирую интерфейсы и собираю их в коде — от первого экрана
+      до продакшена. Ниже — избранные работы.
+    </p>
+
+    <div class="hero__cta">
+      <a class="btn btn--solid" href="#works">Смотреть работы</a>
+      <a class="btn btn--ghost" href="#contact">Связаться</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding: var(--spacing-96) 0 var(--spacing-80);
+    background: var(--color-accent);
+    color: var(--color-paper-white);
+  }
+  .hero__eyebrow { display: block; margin-bottom: var(--spacing-24); color: var(--color-paper-white); }
+  .hero__title { color: var(--color-paper-white); }
+  .hero__lead { color: var(--color-paper-white); }
+  .hero__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+    letter-spacing: var(--tr-h1);
+    font-weight: var(--fw-black);
+    margin: 0 0 var(--spacing-32);
+  }
+  .hero__mark { color: var(--color-paper-white); }
+  .hero .btn { border: none; }
+  .hero__lead {
+    font-size: var(--text-lead);
+    line-height: var(--lh-lead);
+    letter-spacing: var(--tr-lead);
+    font-weight: var(--fw-medium);
+    max-width: 52ch;
+    margin: 0 0 var(--spacing-40);
+  }
+  .hero__cta { display: flex; gap: var(--spacing-12); flex-wrap: wrap; }
+
+  @media (max-width: 719px) {
+    .hero__title { font-size: 44px; }
+  }
+</style>

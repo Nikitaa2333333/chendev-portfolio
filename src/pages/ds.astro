@@ -1,0 +1,175 @@
+---
+import Layout from '@/layouts/Layout.astro';
+
+const colors = [
+  ['--color-ink-black', '#000000', 'Текст, рамки'],
+  ['--color-paper-white', '#ffffff', 'Канва'],
+  ['--color-accent', '#3B73B9', 'Акцент (highlight, типографика)'],
+  ['--color-faint-slate', '#f8fafc', 'Тихий фон'],
+  ['--color-lavender-mist', '#e2e9f3', 'Карточки'],
+  ['--color-blue-gray-mist', '#c5d3e8', 'Плашки'],
+  ['--color-cream-wash', '#fffde6', 'Тёплый акцент'],
+  ['--color-sky-tint', '#c4edff', 'Code-плашки'],
+];
+
+const typeScale = [
+  ['display', 'Display 120', 'Главный экран'],
+  ['h1', 'Заголовок H1', '72px'],
+  ['h2', 'Заголовок H2', '48px'],
+  ['h3', 'Заголовок H3', '24px'],
+  ['lead', 'Лид-абзац — крупный вводный текст под заголовком', '20px'],
+  ['body', 'Основной текст. Обычный параграф, читается на любом фоне.', '16px'],
+];
+
+const weights = [
+  ['regular', 400], ['medium', 500], ['semibold', 600],
+  ['bold', 700], ['extrabold', 800], ['black', 900],
+];
+---
+
+<Layout title="Дизайн-система">
+  <header class="ds-top">
+    <div class="container ds-top__inner">
+      <span class="mono">Дизайн-система · /ds</span>
+      <a href="/" class="mono ds-top__link">← на главную</a>
+    </div>
+  </header>
+
+  <main class="container ds">
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Цвета</h2>
+      <div class="ds-swatches">
+        {colors.map(([token, hex, role]) => (
+          <div class="ds-swatch">
+            <div class="ds-swatch__chip" style={`background:${hex}`}></div>
+            <p class="mono ds-swatch__hex">{hex}</p>
+            <p class="ds-swatch__role">{role}</p>
+            <p class="mono ds-swatch__token">{token}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Типографика</h2>
+      <div class="ds-type">
+        {typeScale.map(([cls, sample, meta]) => (
+          <div class="ds-type__row">
+            <span class="mono ds-type__meta">{meta}</span>
+            <p class={`t-${cls} ds-type__sample`}>{sample}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Веса (Inter)</h2>
+      <div class="ds-weights">
+        {weights.map(([name, val]) => (
+          <div class="ds-weight">
+            <span class="mono">{val} · {name}</span>
+            <p class="ds-weight__sample" style={`font-weight:${val}`}>Быстрая лиса Aa 123</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Кнопки</h2>
+      <div class="ds-row">
+        <a class="btn btn--solid" href="#">Primary CTA</a>
+        <a class="btn btn--ghost" href="#">Secondary</a>
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Метки (mono)</h2>
+      <div class="ds-row">
+        <span class="mono">01 / Eyebrow</span>
+        <span class="mono">Клиент · Год</span>
+        <span class="mono">Tag · Tag · Tag</span>
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Карточка</h2>
+      <div class="ds-card">
+        <div class="box ds-card__media">[ Превью 16:10 ]</div>
+        <span class="mono">01 · Клиент · 2026</span>
+        <p class="ds-card__title">Название работы</p>
+        <span class="mono">Tag · Tag · Tag</span>
+      </div>
+    </section>
+
+    <section class="ds-sec">
+      <h2 class="ds-sec__title">Спейсинг</h2>
+      <div class="ds-spaces">
+        {[8, 16, 24, 32, 48, 64].map((n) => (
+          <div class="ds-space">
+            <div class="ds-space__bar" style={`width:${n}px`}></div>
+            <span class="mono">{n}px</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+  </main>
+</Layout>
+
+<style>
+  .ds-top {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--color-paper-white);
+    border-bottom: var(--border-w) var(--border-style) var(--border-color);
+  }
+  .ds-top__inner { height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .ds-top__link { text-decoration: none; }
+
+  .ds { padding: var(--spacing-48) 0 var(--spacing-120); }
+  .ds-sec {
+    padding: var(--spacing-48) 0;
+    border-top: var(--border-w) var(--border-style) var(--border-color);
+  }
+  .ds-sec:first-child { border-top: none; }
+  .ds-sec__title { font-size: var(--text-h3); margin-bottom: var(--spacing-24); }
+
+  .ds-row { display: flex; gap: var(--spacing-16); flex-wrap: wrap; align-items: center; }
+
+  /* swatches */
+  .ds-swatches { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-16); }
+  @media (min-width: 720px) { .ds-swatches { grid-template-columns: repeat(4, 1fr); } }
+  .ds-swatch__chip {
+    height: 80px; border-radius: var(--radius-card);
+    border: var(--border-w) solid var(--color-ink-black);
+  }
+  .ds-swatch__hex { margin: var(--spacing-8) 0 0; }
+  .ds-swatch__role { margin: var(--spacing-4) 0 0; font-size: 14px; font-weight: var(--fw-medium); }
+  .ds-swatch__token { margin: var(--spacing-4) 0 0; font-size: 10px; }
+
+  /* type */
+  .ds-type { display: grid; gap: var(--spacing-32); }
+  .ds-type__row { display: grid; gap: var(--spacing-8); }
+  .ds-type__sample { margin: 0; }
+
+  /* weights */
+  .ds-weights { display: grid; gap: var(--spacing-16); }
+  .ds-weight { display: grid; gap: var(--spacing-4); }
+  .ds-weight__sample { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+
+  /* card */
+  .ds-card {
+    max-width: 360px;
+    border: var(--border-w) var(--border-style) var(--border-color);
+    border-radius: var(--radius-card);
+    padding: var(--spacing-12);
+    display: flex; flex-direction: column; gap: var(--spacing-8);
+  }
+  .ds-card__media { aspect-ratio: 16/10; min-height: 0; }
+  .ds-card__title { margin: 0; font-size: 18px; font-weight: var(--fw-black); }
+
+  /* spacing */
+  .ds-spaces { display: grid; gap: var(--spacing-12); }
+  .ds-space { display: flex; align-items: center; gap: var(--spacing-16); }
+  .ds-space__bar { height: 16px; background: var(--color-ink-black); border-radius: 2px; }
+</style>

@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+/* ============================================================
+   ДИЗАЙН-ТОКЕНЫ — единственный источник истины.
+   Меняешь тут → подхватывается везде. В компонентах только var().
+   ============================================================ */
+@theme {
+  /* ---- Цвета. Текст — чисто чёрный. Акцент — синий (вместо оранжевого). ---- */
+  --color-ink-black: #000000;
+  --color-paper-white: #ffffff;
+  --color-faint-slate: #f8fafc;
+  --color-lavender-mist: #e2e9f3;
+  --color-blue-gray-mist: #c5d3e8;
+  --color-cream-wash: #fffde6;
+  --color-sky-tint: #c4edff;
+
+  /* Акцент: базовый синий #3B73B9 + шкала */
+  --color-accent: #3B73B9;        /* highlight, акценты (бывший оранжевый) */
+  --color-accent-700: #2C568B;    /* hover / нажатие */
+  --color-accent-900: #1E3A5D;    /* самый тёмный */
+  --color-signal-orange: var(--color-accent); /* алиас, чтобы старые ссылки = синий */
+
+  /* ---- Шрифты. ТОЛЬКО Inter. Моноширинный исключён — алиас на sans. ---- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-sans);
+
+  /* ---- Веса ---- */
+  /* Только два веса: Medium 500 и Black 900. Остальные — алиасы на них. */
+  --fw-regular: 500;
+  --fw-medium: 500;
+  --fw-semibold: 500;
+  --fw-bold: 900;
+  --fw-extrabold: 900;
+  --fw-black: 900;
+
+  /* ---- Шкала текста (size / line-height). Разрядка = 0 везде. ---- */
+  --text-caption: 12px;   --lh-caption: 1.3;  --tr-caption: 0;
+  --text-body: 16px;      --lh-body: 1.5;     --tr-body: 0;
+  --text-lead: 20px;      --lh-lead: 1.45;    --tr-lead: 0;
+  --text-h3: 24px;        --lh-h3: 1.15;      --tr-h3: 0;
+  --text-h2: 48px;        --lh-h2: 1.05;      --tr-h2: 0;
+  --text-h1: 72px;        --lh-h1: 1.0;       --tr-h1: 0;
+  --text-display: 120px;  --lh-display: 0.95; --tr-display: 0;
+
+  /* ---- Спейсинг ---- */
+  --spacing-4: 4px;   --spacing-8: 8px;   --spacing-12: 12px;
+  --spacing-16: 16px; --spacing-24: 24px; --spacing-32: 32px;
+  --spacing-40: 40px; --spacing-48: 48px; --spacing-56: 56px;
+  --spacing-64: 64px; --spacing-80: 80px; --spacing-96: 96px;
+  --spacing-120: 120px;
+
+  /* ---- Вертикальный ритм ---- */
+  --section-pad-y: 64px;
+  --section-gap: 24px;
+
+  /* ---- Бордеры ---- */
+  --border-w: 1px;
+  --border-style: solid;
+  --border-color: var(--color-ink-black);
+
+  /* ---- Радиусы ---- */
+  --radius-card: 4px;
+  --radius-pill: 50px;
+
+  /* ---- Контейнер ---- */
+  --container-page: 100%;
+  --container-pad: 15px;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  color-scheme: light;
+  background: var(--color-paper-white);
+  color: var(--color-ink-black);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+
+/* Headings — Inter Black (900) везде */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--fw-black);
+  letter-spacing: 0;
+  color: var(--color-ink-black);
+  margin: 0;
+}
+
+/* ============================================================
+   ТИПОГРАФИЧЕСКИЕ УТИЛИТЫ — тянут токены, без хардкодов
+   ============================================================ */
+.t-caption  { font-size: var(--text-caption); line-height: var(--lh-caption); letter-spacing: var(--tr-caption); }
+.t-body     { font-size: var(--text-body);    line-height: var(--lh-body);    letter-spacing: var(--tr-body); }
+.t-lead     { font-size: var(--text-lead);    line-height: var(--lh-lead);    letter-spacing: var(--tr-lead); }
+.t-h3       { font-size: var(--text-h3);       line-height: var(--lh-h3);      letter-spacing: var(--tr-h3);      font-weight: var(--fw-black); }
+.t-h2       { font-size: var(--text-h2);       line-height: var(--lh-h2);      letter-spacing: var(--tr-h2);      font-weight: var(--fw-black); }
+.t-h1       { font-size: var(--text-h1);       line-height: var(--lh-h1);      letter-spacing: var(--tr-h1);      font-weight: var(--fw-black); }
+.t-display  { font-size: var(--text-display);  line-height: var(--lh-display); letter-spacing: var(--tr-display); font-weight: var(--fw-black); }
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+  letter-spacing: var(--tr-caption);
+  color: var(--color-ink-black);
+}
+
+/* ============================================================
+   ПРИМИТИВЫ
+   ============================================================ */
+.container {
+  max-width: var(--container-page);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+}
+
+.section {
+  border-top: var(--border-w) var(--border-style) var(--border-color);
+  padding: var(--section-pad-y) 0;
+  position: relative;
+}
+.section:first-of-type { border-top: none; }
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-16);
+  margin-bottom: var(--spacing-16);
+}
+
+.section__title {
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tr-h2);
+  font-weight: var(--fw-black);
+  margin: var(--spacing-4) 0 var(--spacing-16);
+  color: var(--color-ink-black);
+}
+
+.section__note {
+  color: var(--color-ink-black);
+  max-width: 60ch;
+  margin: 0 0 var(--spacing-24);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.section__todo {
+  list-style: none;
+  margin: var(--spacing-16) 0 0;
+  padding: var(--spacing-16) 0 0;
+  border-top: var(--border-w) var(--border-style) var(--border-color);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-ink-black);
+  display: grid;
+  gap: var(--spacing-8);
+}
+.section__todo li::before { content: "[ ] "; font-weight: var(--fw-medium); }
+
+.box {
+  border: var(--border-w) var(--border-style) var(--border-color);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-16);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0;
+  color: var(--color-ink-black);
+  background: var(--color-paper-white);
+}
+
+.grid { display: grid; gap: var(--spacing-16); grid-template-columns: 1fr; }
+@media (min-width: 720px) { .grid--2 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 720px) { .grid--3 { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 720px) { .grid--4 { grid-template-columns: repeat(4, 1fr); } }
+
+/* ============================================================
+   КНОПКИ (примитивы дизайн-системы)
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  padding: 12px 24px;
+  cursor: pointer;
+  border: var(--border-w) solid var(--color-ink-black);
+  transition: transform 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn--solid { background: var(--color-ink-black); color: var(--color-paper-white); }
+.btn--ghost { background: var(--color-paper-white); color: var(--color-ink-black); }

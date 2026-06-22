@@ -1,0 +1,47 @@
+---
+const skills = [
+  ['Дизайн', ['Интерфейсы', 'Дизайн-системы', 'Типографика', 'Прототипы']],
+  ['Разработка', ['HTML / CSS', 'TypeScript', 'Astro', 'React']],
+  ['Подход', ['Исследование', 'Быстрые итерации', 'Внимание к деталям']],
+];
+---
+
+<section class="about" id="about">
+  <div class="container">
+    <div class="about__grid">
+      <h2 class="about__title">
+        Проектирую и собираю продукты, которыми приятно пользоваться.
+      </h2>
+      <div class="about__col">
+        <p class="about__bio">
+          Меня зовут [Имя]. Несколько лет делаю цифровые продукты — от первых
+          набросков до готового кода. Люблю чистую типографику, понятные
+          интерфейсы и быстрые сайты.
+        </p>
+        <dl class="about__skills">
+          {skills.map(([h, items]) => (
+            <div>
+              <dt class="mono">{h}</dt>
+              {items.map((s) => <dd class="about__skill">{s}</dd>)}
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about { padding: var(--spacing-96) 0; }
+  .about__grid {
+    display: grid; grid-template-columns: 1fr; gap: var(--spacing-32);
+    margin-top: var(--spacing-24);
+  }
+  @media (min-width: 880px) { .about__grid { grid-template-columns: 1fr 1fr; gap: var(--spacing-64); } }
+  .about__title { font-size: var(--text-h2); line-height: var(--lh-h2); letter-spacing: var(--tr-h2); font-weight: var(--fw-black); }
+  .about__bio { font-size: var(--text-lead); line-height: var(--lh-lead); font-weight: var(--fw-medium); margin: 0 0 var(--spacing-40); max-width: 48ch; }
+  .about__skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-24); margin: 0; }
+  .about__skills dt { margin-bottom: var(--spacing-12); }
+  .about__skill { margin: 0 0 var(--spacing-8); font-weight: var(--fw-semibold); }
+  @media (max-width: 539px) { .about__skills { grid-template-columns: 1fr; } }
+</style>

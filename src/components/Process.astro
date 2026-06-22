@@ -1,0 +1,35 @@
+---
+const steps = [
+  ['01', 'Знакомство', 'Разбираемся в задаче, продукте и людях, которые им пользуются.'],
+  ['02', 'Дизайн', 'Прототипирую интерфейс и собираю в коде. Решения принимаем на живых экранах.'],
+  ['03', 'Запуск', 'Выпускаю по частям, быстро получаю обратную связь и дорабатываю.'],
+  ['04', 'Поддержка', 'Шлифую детали, слежу за метриками и помогаю развивать продукт.'],
+];
+---
+
+<section class="process" id="process">
+  <div class="container">
+    <h2 class="process__title">Как я работаю</h2>
+    <div class="process__grid">
+      {steps.map(([n, t, d]) => (
+        <div class="step">
+          <span class="step__num">{n}</span>
+          <h3 class="step__title">{t}</h3>
+          <p class="step__text">{d}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .process { padding: var(--spacing-96) 0; }
+  .process__title { font-size: var(--text-h2); margin: var(--spacing-4) 0 var(--spacing-48); }
+  .process__grid { display: grid; grid-template-columns: 1fr; gap: var(--spacing-32); }
+  @media (min-width: 640px)  { .process__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1080px) { .process__grid { grid-template-columns: repeat(4, 1fr); gap: var(--spacing-24); } }
+  .step { border-top: var(--border-w) solid var(--color-ink-black); padding-top: var(--spacing-16); }
+  .step__num { font-size: 40px; font-weight: var(--fw-black); letter-spacing: 0; color: var(--color-accent); display: block; }
+  .step__title { font-size: var(--text-h3); margin: var(--spacing-12) 0 var(--spacing-8); }
+  .step__text { margin: 0; line-height: var(--lh-body); }
+</style>

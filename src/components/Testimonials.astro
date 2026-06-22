@@ -1,0 +1,35 @@
+---
+const quotes = [
+  ['Работали быстро и по делу. Результат превзошёл ожидания.', 'Имя Фамилия', 'CEO, Компания'],
+  ['Чистый дизайн и идеально собранный фронтенд. Рекомендую.', 'Имя Фамилия', 'Продакт, Компания'],
+  ['Понял задачу с полуслова и предложил решение лучше нашего.', 'Имя Фамилия', 'Фаундер, Компания'],
+];
+---
+
+<section class="tst" id="testimonials">
+  <div class="container">
+    <h2 class="tst__title">Что говорят клиенты</h2>
+    <div class="tst__grid">
+      {quotes.map(([text, name, role]) => (
+        <figure class="quote">
+          <blockquote class="quote__text">«{text}»</blockquote>
+          <figcaption class="quote__by">
+            <span class="quote__name">{name}</span>
+            <span class="mono">{role}</span>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .tst { padding: var(--spacing-96) 0; }
+  .tst__title { font-size: var(--text-h2); margin: var(--spacing-4) 0 var(--spacing-48); }
+  .tst__grid { display: grid; grid-template-columns: 1fr; gap: var(--spacing-24); }
+  @media (min-width: 720px) { .tst__grid { grid-template-columns: repeat(3, 1fr); } }
+  .quote { margin: 0; border: var(--border-w) solid var(--color-ink-black); border-radius: var(--radius-card); padding: var(--spacing-24); display: flex; flex-direction: column; gap: var(--spacing-24); }
+  .quote__text { margin: 0; font-size: var(--text-lead); line-height: var(--lh-lead); font-weight: var(--fw-semibold); }
+  .quote__by { display: flex; flex-direction: column; gap: var(--spacing-4); margin-top: auto; }
+  .quote__name { font-weight: var(--fw-bold); }
+</style>

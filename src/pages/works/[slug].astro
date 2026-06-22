@@ -1,0 +1,102 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Nav from '@/components/Nav.astro';
+import Footer from '@/components/Footer.astro';
+import { works } from '@/data/works';
+
+export function getStaticPaths() {
+  return works.map((w) => ({ params: { slug: w.slug }, props: { work: w } }));
+}
+
+const { work } = Astro.props;
+const idx = works.findIndex((w) => w.slug === work.slug);
+const prev = works[(idx - 1 + works.length) % works.length];
+const next = works[(idx + 1) % works.length];
+---
+
+<Layout title={`${work.title} — кейс`}>
+  <Nav />
+
+  <main class="case container">
+    <section class="section">
+      <div class="section__head">
+        <span class="mono">Кейс / {work.slug}</span>
+        <a href="/#works" class="mono" style="text-decoration: underline;">← к списку работ</a>
+      </div>
+
+      <h1 class="section__title">{work.title}</h1>
+
+      <p class="section__note">
+        Внутренняя страница работы. Здесь будет: hero-картинка, мета (клиент / год / роль),
+        обзор проекта, процесс, ключевые скрины, метрики, цитата, ссылки.
+      </p>
+
+      <div class="case__plate">
+        <div class="box case__hero">[ Hero-изображение / видео ]</div>
+        <div class="case__meta-row">
+          <div class="box">[ Клиент ]</div>
+          <div class="box">[ Год ]</div>
+          <div class="box">[ Роль ]</div>
+          <div class="box">[ Стек ]</div>
+        </div>
+        <div class="box case__overview">[ Обзор: 2–3 абзаца ]</div>
+        <div class="case__media-row">
+          <div class="box case__shot">[ Скрин 01 ]</div>
+          <div class="box case__shot">[ Скрин 02 ]</div>
+        </div>
+        <div class="box case__metrics">[ Метрики · 3–4 цифры ]</div>
+        <div class="box case__quote">[ Цитата клиента ]</div>
+      </div>
+
+      <ul class="section__todo">
+        <li>Hero-материал (видео / большая картинка)</li>
+        <li>Текст обзора (что было — что сделали — что получилось)</li>
+        <li>2–4 скриншота / артефакта</li>
+        <li>Метрики до/после</li>
+        <li>Цитата клиента</li>
+      </ul>
+    </section>
+
+    <nav class="case__nav" aria-label="Другие работы">
+      <a class="box" href={`/works/${prev.slug}`}>← {prev.title}</a>
+      <a class="box" href={`/works/${next.slug}`}>{next.title} →</a>
+    </nav>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .case__plate {
+    display: grid;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .case__hero { aspect-ratio: 16 / 9; min-height: 0; }
+  .case__meta-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  @media (min-width: 720px) { .case__meta-row { grid-template-columns: repeat(4, 1fr); } }
+  .case__overview { min-height: 160px; }
+  .case__media-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  @media (min-width: 720px) { .case__media-row { grid-template-columns: repeat(2, 1fr); } }
+  .case__shot { aspect-ratio: 4 / 3; min-height: 0; }
+  .case__metrics { min-height: 100px; }
+  .case__quote { min-height: 120px; }
+
+  .case__nav {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin: 40px 0 96px;
+  }
+  @media (min-width: 720px) { .case__nav { grid-template-columns: 1fr 1fr; } }
+  .case__nav .box {
+    min-height: 64px;
+    text-decoration: none;
+    color: var(--color-ink-black);
+    text-transform: none;
+    font-family: var(--font-sans);
+    letter-spacing: 0;
+    font-size: 14px;
+    padding: 16px;
+  }
+</style>

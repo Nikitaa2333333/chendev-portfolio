@@ -1,0 +1,47 @@
+---
+const year = new Date().getFullYear();
+const nav = [
+  ['Работы', '#works'],
+  ['Обо мне', '#about'],
+  ['Процесс', '#process'],
+  ['Контакты', '#contact'],
+];
+const social = [
+  ['Email', 'mailto:chendev2003@gmail.com'],
+  ['Telegram', 'https://t.me/'],
+  ['GitHub', 'https://github.com/'],
+];
+---
+
+<footer class="footer" role="contentinfo">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <span class="footer__logo">[Имя]</span>
+      <p class="footer__tag">Дизайн и разработка цифровых продуктов.</p>
+    </div>
+    <nav class="footer__col" aria-label="Навигация">
+      <span class="mono">Навигация</span>
+      {nav.map(([l, h]) => <a href={h}>{l}</a>)}
+    </nav>
+    <nav class="footer__col" aria-label="Соцсети">
+      <span class="mono">Контакты</span>
+      {social.map(([l, h]) => <a href={h}>{l}</a>)}
+    </nav>
+  </div>
+  <div class="container footer__meta">
+    <span class="mono">© {year} [Имя]</span>
+    <span class="mono">Astro · Inter · JetBrains Mono</span>
+  </div>
+</footer>
+
+<style>
+  .footer { padding: var(--spacing-64) 0 var(--spacing-32); }
+  .footer__inner { display: grid; grid-template-columns: 1fr; gap: var(--spacing-32); }
+  @media (min-width: 720px) { .footer__inner { grid-template-columns: 2fr 1fr 1fr; } }
+  .footer__logo { font-size: var(--text-h3); font-weight: var(--fw-black); letter-spacing: 0; }
+  .footer__tag { margin: var(--spacing-8) 0 0; max-width: 32ch; }
+  .footer__col { display: flex; flex-direction: column; gap: var(--spacing-12); }
+  .footer__col a { color: var(--color-ink-black); text-decoration: none; font-weight: var(--fw-medium); }
+  .footer__col a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .footer__meta { display: flex; justify-content: space-between; gap: var(--spacing-16); flex-wrap: wrap; margin-top: var(--spacing-64); }
+</style>
