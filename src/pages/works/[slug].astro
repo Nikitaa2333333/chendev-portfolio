@@ -1,6 +1,5 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import Nav from '@/components/Nav.astro';
 import Footer from '@/components/Footer.astro';
 import { works } from '@/data/works';
 
@@ -15,8 +14,6 @@ const next = works[(idx + 1) % works.length];
 ---
 
 <Layout title={`${work.title} — кейс`}>
-  <Nav />
-
   <main class="case container">
     <section class="section">
       <div class="section__head">

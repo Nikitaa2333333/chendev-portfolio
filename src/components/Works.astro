@@ -10,12 +10,13 @@ const rows = rowNums.map((n) => ({
 
 // размер → число юнитов сетки (small = 1, middle = 2). Снято замером с artlebedev.ru.
 const units = (size: string) => (size === 'middle' ? 2 : 1);
+
+// префикс под base (GitHub Pages в подпапке): пути в works.ts начинаются с '/'.
+const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 ---
 
 <section class="works" id="works">
   <div class="works__wrap">
-    <h2 class="works__title">Работы</h2>
-
     <ul class="works__filter" aria-label="Фильтр по категориям">
       {categories.map((c, i) => (
         <li class="works__chip" aria-pressed={i === 0 ? 'true' : 'false'}>{c}</li>
@@ -28,17 +29,26 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
           {row.items.map((w) => (
             <a
               class="tile"
-              href={`/works/${w.slug}`}
+              href={withBase(`/works/${w.slug}`)}
               data-category={w.category}
               data-size={w.size}
+              data-fit={w.fit ?? 'cover'}
               style={`--u:${units(w.size)}; --surface:${w.surface}`}
             >
               {w.video ? (
-                <video class="tile__fill" autoplay muted loop playsinline preload="metadata" poster={w.poster}>
-                  <source src={w.video} type="video/mp4" />
+                <video
+                  class="tile__fill"
+                  data-autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  poster={w.poster ? withBase(w.poster) : undefined}
+                >
+                  <source src={withBase(w.video)} type="video/mp4" />
                 </video>
               ) : w.image ? (
-                <img class="tile__fill" src={w.image} alt={w.title} loading="lazy" />
+                <img class="tile__fill" src={withBase(w.image)} alt={w.title} loading="lazy" />
               ) : null}
 
               <div class="tile__grad"></div>
@@ -55,13 +65,11 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
 </section>
 
 <style>
-  .works { padding: var(--spacing-80) 0 var(--spacing-96); }
+  .works { padding: var(--spacing-16) 0 var(--section-pad-y); }
   .works__wrap { width: 100%; padding: 0 15px; }
-  .works__title { font-size: var(--text-h2); margin: var(--spacing-4) 0 var(--spacing-24); }
-
   .works__filter {
     list-style: none; margin: 0 0 var(--spacing-32); padding: 0;
-    display: flex; flex-wrap: wrap; gap: var(--spacing-8);
+    display: flex; flex-wrap: wrap; gap: var(--spacing-8); justify-content: center;
   }
   .works__chip {
     font-size: var(--text-caption);
@@ -80,6 +88,9 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
      AR пропорционален числу юнитов (--u × 0.649), поэтому ВСЕ плитки
      ряда автоматически одной высоты → ряды стыкуются без дыр.
      База 0.649 = 370/570 (1 юнит ширины / высота ряда у оригинала).
+     ДИНАМИКА: сумма юнитов в ряду варьируется (3 / 4 / 5). Меньше сумма →
+     шире юнит → выше ряд. Так высоты рядов разные = живой ритм, как у
+     Лебедева. Контраст задаём осознанно (размер + тёплый/холодный цвет).
      ============================================================ */
   .works__grid { display: flex; flex-direction: column; gap: 8px; }
   .row { display: flex; align-items: flex-start; gap: 8px; }
@@ -99,6 +110,12 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
        «Живость» даёт сам медиа (gif/video), а не CSS. */
   }
   .tile__fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* contain-режим: объект по центру, surface-цвет (фон плитки) заливает поля.
+     padding даёт воздух, чтобы объект не упирался в края. Низ — под зону градиента. */
+  .tile[data-fit="contain"] .tile__fill {
+    object-fit: contain;
+    padding: 10% 10% 16%;
+  }
 
   /* градиент снизу — картинка/видео утопает в цвет плитки, подпись читается.
      Совпадает с оригиналом: прозрачно сверху → ~0.8 на 77% → solid у низа.
@@ -126,10 +143,21 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
     .works__grid { gap: 6px; }
     .row { gap: 6px; }
   }
-  /* Мобайл: ряд → колонка, каждая плитка во всю ширину, единый AR. */
-  @media (max-width: 639px) {
-    .row { flex-direction: column; }
-    .tile { aspect-ratio: 1.4; }
+  /* Мобайл/узкий планшет — модель artlebedev: middle во всю ширину, small по 2 в ряд.
+     .row → display:contents: плитки текут в ОБЩИЙ 2-колоночный грид сплошным
+     потоком (small'ы парятся даже между исходными рядами). row dense убирает
+     дыры от одиночных small. middle спанит 2 колонки.
+     ВАЖНО: flex-свойства в гриде игнорируются — высоту задаёт aspect-ratio. */
+  @media (max-width: 767px) {
+    .works__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-flow: row dense;
+      gap: 6px;
+    }
+    .row { display: contents; }
+    .tile { width: auto; aspect-ratio: 0.66; }                /* small: портрет, 1 колонка */
+    .tile[data-size="middle"] { grid-column: span 2; aspect-ratio: 1.5; } /* middle: ландшафт во всю ширину */
     .tile__title { font-size: var(--text-body); }
   }
 </style>
@@ -150,6 +178,37 @@ const units = (size: string) => (size === 'middle' ? 2 : 1);
       });
     });
   }
-  bindFilter();
-  document.addEventListener('astro:page-load', bindFilter);
+
+  // База под видео: автоплей только в зоне видимости (perf), постер — фолбэк.
+  // Уважаем prefers-reduced-motion: ничего не запускаем, остаётся постер.
+  let videoObserver: IntersectionObserver | null = null;
+  function bindVideos() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]'));
+    if (!videos.length) return;
+    videoObserver?.disconnect();
+    videoObserver = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement;
+          if (e.isIntersecting) {
+            if (v.preload === 'none') v.preload = 'auto';
+            v.play().catch(() => {}); // автоплей может быть заблокирован — тихо игнорим
+          } else {
+            v.pause();
+          }
+        }
+      },
+      { threshold: 0.25 }
+    );
+    videos.forEach((v) => videoObserver!.observe(v));
+  }
+
+  function initWorks() {
+    bindFilter();
+    bindVideos();
+  }
+  initWorks();
+  document.addEventListener('astro:page-load', initWorks);
 </script>
