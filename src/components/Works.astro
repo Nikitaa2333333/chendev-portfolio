@@ -1,5 +1,5 @@
 ---
-import { works, categories } from '@/data/works';
+import { works } from '@/data/works';
 
 // группируем по рядам (как .p-v3-grid-line у Лебедева). Сумма юнитов в ряду = 4.
 const rowNums = [...new Set(works.map((w) => w.row))].sort((a, b) => a - b);
@@ -17,12 +17,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
 <section class="works" id="works">
   <div class="works__wrap">
-    <ul class="works__filter" aria-label="Фильтр по категориям">
-      {categories.map((c, i) => (
-        <li class="works__chip" aria-pressed={i === 0 ? 'true' : 'false'}>{c}</li>
-      ))}
-    </ul>
-
     <div class="works__grid">
       {rows.map((row) => (
         <div class="row">
@@ -67,17 +61,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 <style>
   .works { padding: var(--spacing-16) 0 var(--section-pad-y); }
   .works__wrap { width: 100%; padding: 0 15px; }
-  .works__filter {
-    list-style: none; margin: 0 0 var(--spacing-32); padding: 0;
-    display: flex; flex-wrap: wrap; gap: var(--spacing-8); justify-content: center;
-  }
-  .works__chip {
-    font-size: var(--text-caption);
-    color: var(--color-ink-black); background: var(--color-paper-white);
-    border: var(--border-w) solid var(--color-ink-black);
-    padding: 8px 14px; border-radius: var(--radius-pill); cursor: pointer;
-  }
-  .works__chip[aria-pressed="true"] { background: var(--color-ink-black); color: var(--color-paper-white); }
 
   /* ============================================================
      Сетка работ — модель artlebedev.ru (v5), снята замером в браузере.
@@ -163,22 +146,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 </style>
 
 <script>
-  function bindFilter() {
-    const chips = Array.from(document.querySelectorAll<HTMLElement>('.works__chip'));
-    const tiles = Array.from(document.querySelectorAll<HTMLElement>('.tile'));
-    if (!chips.length) return;
-    chips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const cat = chip.textContent?.trim() ?? 'Все';
-        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-        tiles.forEach((t) => {
-          const show = cat === 'Все' || t.dataset.category === cat;
-          t.style.display = show ? '' : 'none';
-        });
-      });
-    });
-  }
-
   // База под видео: автоплей только в зоне видимости (perf), постер — фолбэк.
   // Уважаем prefers-reduced-motion: ничего не запускаем, остаётся постер.
   let videoObserver: IntersectionObserver | null = null;
@@ -206,7 +173,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   }
 
   function initWorks() {
-    bindFilter();
     bindVideos();
   }
   initWorks();

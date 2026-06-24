@@ -1,4 +1,8 @@
 ---
+// Self-hosted Inter (500 + 900) — без render-blocking коннектов к Google Fonts.
+// Astro бандлит CSS same-origin, woff2 грузятся локально → быстрый FCP/LCP.
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/900.css';
 import '@/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 
@@ -21,13 +25,6 @@ const {
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`} />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;900&display=swap"
-    />
 
     <title>{title}</title>
     <ClientRouter />

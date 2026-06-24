@@ -11,52 +11,115 @@ const { work } = Astro.props;
 const idx = works.findIndex((w) => w.slug === work.slug);
 const prev = works[(idx - 1 + works.length) % works.length];
 const next = works[(idx + 1) % works.length];
+
+// База под GitHub Pages в подпапке: пути в works.ts начинаются с '/'.
+const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
+
+// Чистый домен для подписи ссылки (https://noble-farm.ru/ → noble-farm.ru)
+const siteLabel = work.siteUrl?.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+// Контакты автора (CTA). Telegram пока заглушка — заменим на реальную ссылку.
+const contacts = [
+  { label: 'Telegram', href: '#' },
+  { label: 'chendev2003@gmail.com', href: 'mailto:chendev2003@gmail.com' },
+  { label: '+7 953 121 74 77', href: 'tel:+79531217477' },
+];
 ---
 
 <Layout title={`${work.title} — кейс`}>
-  <main class="case container">
-    <section class="section">
-      <div class="section__head">
-        <span class="mono">Кейс / {work.slug}</span>
-        <a href="/#works" class="mono" style="text-decoration: underline;">← к списку работ</a>
+  <main class="case">
+    {/* ── Hero: видео/картинка на весь экран ── */}
+    <section class="hero" style={`--surface:${work.surface}`}>
+      {work.video ? (
+        <video
+          class="hero__media"
+          data-hero-video
+          muted
+          loop
+          playsinline
+          preload="auto"
+          autoplay
+          poster={work.poster ? withBase(work.poster) : undefined}
+        >
+          <source src={withBase(work.video)} type="video/mp4" />
+        </video>
+      ) : work.image ? (
+        <img class="hero__media" src={withBase(work.image)} alt={work.title} />
+      ) : null}
+
+      <div class="hero__grad"></div>
+
+      <a class="hero__back mono" href={withBase('/#works')}>← к работам</a>
+
+      <div class="hero__cap">
+        <h1 class="hero__title">{work.title}</h1>
+        <p class="hero__tags mono">{work.tags.join(' · ')} · {work.year}</p>
       </div>
 
-      <h1 class="section__title">{work.title}</h1>
-
-      <p class="section__note">
-        Внутренняя страница работы. Здесь будет: hero-картинка, мета (клиент / год / роль),
-        обзор проекта, процесс, ключевые скрины, метрики, цитата, ссылки.
-      </p>
-
-      <div class="case__plate">
-        <div class="box case__hero">[ Hero-изображение / видео ]</div>
-        <div class="case__meta-row">
-          <div class="box">[ Клиент ]</div>
-          <div class="box">[ Год ]</div>
-          <div class="box">[ Роль ]</div>
-          <div class="box">[ Стек ]</div>
-        </div>
-        <div class="box case__overview">[ Обзор: 2–3 абзаца ]</div>
-        <div class="case__media-row">
-          <div class="box case__shot">[ Скрин 01 ]</div>
-          <div class="box case__shot">[ Скрин 02 ]</div>
-        </div>
-        <div class="box case__metrics">[ Метрики · 3–4 цифры ]</div>
-        <div class="box case__quote">[ Цитата клиента ]</div>
-      </div>
-
-      <ul class="section__todo">
-        <li>Hero-материал (видео / большая картинка)</li>
-        <li>Текст обзора (что было — что сделали — что получилось)</li>
-        <li>2–4 скриншота / артефакта</li>
-        <li>Метрики до/после</li>
-        <li>Цитата клиента</li>
-      </ul>
+      <span class="hero__scroll" aria-hidden="true">↓</span>
     </section>
 
-    <nav class="case__nav" aria-label="Другие работы">
-      <a class="box" href={`/works/${prev.slug}`}>← {prev.title}</a>
-      <a class="box" href={`/works/${next.slug}`}>{next.title} →</a>
+    {/* ── Обзор + ссылка на сайт ── */}
+    {work.overview && (
+      <section class="sec sec--wrap">
+        <p class="lead">{work.overview}</p>
+        {work.siteUrl && (
+          <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">
+            {siteLabel} <span class="sitelink__arrow" aria-hidden="true">↗</span>
+          </a>
+        )}
+      </section>
+    )}
+
+    {/* ── Контент-блоки (медиа + текст) по порядку ── */}
+    {work.blocks?.map((b) =>
+      b.type === 'text' ? (
+        <section class="sec sec--wrap text-block">
+          {b.heading && <h2 class="h2">{b.heading}</h2>}
+          <p class="body">{b.body}</p>
+        </section>
+      ) : b.type === 'quote' ? (
+        <section class="sec sec--wrap">
+          <blockquote class="quote">{b.text}</blockquote>
+          {b.author && <p class="quote__author mono">{b.author}</p>}
+        </section>
+      ) : (
+        <figure class="figure sec--wrap" style={`--surface:${work.surface}`}>
+          <div class="figure__media">
+            {b.src ? (
+              <img src={withBase(b.src)} alt={b.alt ?? b.caption ?? work.title} loading="lazy" />
+            ) : (
+              <span class="figure__ph mono">[ скрин — заглушка ]</span>
+            )}
+          </div>
+          {b.caption && <figcaption class="figure__cap mono">{b.caption}</figcaption>}
+        </figure>
+      )
+    )}
+
+    {/* ── CTA: написать автору ── */}
+    <section class="cta">
+      <div class="cta__inner sec--wrap">
+        <h2 class="cta__title">Хотите такой же сайт?</h2>
+        <p class="cta__lead">Напишите Никите — обсудим проект и соберём сайт, который работает на вас.</p>
+        <div class="cta__links">
+          {contacts.map((c) => (
+            <a class="cta__link" href={c.href}>{c.label}</a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ── Навигация по кейсам ── */}
+    <nav class="case-nav sec--wrap" aria-label="Другие работы">
+      <a class="case-nav__item" href={withBase(`/works/${prev.slug}`)}>
+        <span class="mono">← предыдущая</span>
+        <span class="case-nav__title">{prev.title}</span>
+      </a>
+      <a class="case-nav__item case-nav__item--next" href={withBase(`/works/${next.slug}`)}>
+        <span class="mono">следующая →</span>
+        <span class="case-nav__title">{next.title}</span>
+      </a>
     </nav>
   </main>
 
@@ -64,36 +127,220 @@ const next = works[(idx + 1) % works.length];
 </Layout>
 
 <style>
-  .case__plate {
-    display: grid;
-    gap: 12px;
-    margin: 16px 0;
-  }
-  .case__hero { aspect-ratio: 16 / 9; min-height: 0; }
-  .case__meta-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  @media (min-width: 720px) { .case__meta-row { grid-template-columns: repeat(4, 1fr); } }
-  .case__overview { min-height: 160px; }
-  .case__media-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
-  @media (min-width: 720px) { .case__media-row { grid-template-columns: repeat(2, 1fr); } }
-  .case__shot { aspect-ratio: 4 / 3; min-height: 0; }
-  .case__metrics { min-height: 100px; }
-  .case__quote { min-height: 120px; }
+  /* ============================================================
+     Страница кейса. Полноширинная, боковые поля 15px (как везде).
+     Hero — единственное full-bleed-исключение (от края до края).
+     ============================================================ */
+  .sec--wrap { padding-left: 15px; padding-right: 15px; }
 
-  .case__nav {
+  /* ---- Hero на весь экран ---- */
+  .hero {
+    position: relative;
+    height: 100svh;
+    min-height: 480px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .hero__media {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  /* Градиент снизу — название читается поверх любого кадра.
+     (Разрешённое исключение из «без прозрачностей» — ради читабельности.) */
+  .hero__grad {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.15) 30%,
+      transparent 55%
+    );
+  }
+  .hero__back {
+    position: absolute; top: 16px; left: 15px;
+    color: var(--color-paper-white);
+    text-decoration: none;
+    z-index: 2;
+  }
+  .hero__back:hover { text-decoration: underline; }
+  .hero__cap {
+    position: absolute; left: 15px; right: 15px; bottom: 56px;
+    z-index: 2;
+  }
+  .hero__title {
+    color: var(--color-paper-white);
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+    font-weight: var(--fw-black);
+    margin: 0 0 var(--spacing-12);
+    max-width: 18ch;
+  }
+  .hero__tags { color: var(--color-paper-white); }
+  .hero__scroll {
+    position: absolute; left: 50%; bottom: 16px;
+    transform: translateX(-50%);
+    color: var(--color-paper-white);
+    font-size: 22px;
+    z-index: 2;
+    animation: heroBob 1.6s ease-in-out infinite;
+  }
+  @keyframes heroBob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 6px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__scroll { animation: none; }
+  }
+
+  /* ---- Текстовые секции ---- */
+  .sec { padding: var(--spacing-48) 0; }
+  .lead {
+    font-size: var(--text-lead);
+    line-height: var(--lh-lead);
+    color: var(--color-ink-black);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .h2 {
+    font-size: var(--text-h2);
+    line-height: var(--lh-h2);
+    font-weight: var(--fw-black);
+    color: var(--color-ink-black);
+    margin: 0 0 var(--spacing-16);
+  }
+  .body {
+    font-size: var(--text-body);
+    line-height: var(--lh-body);
+    color: var(--color-ink-black);
+    max-width: 62ch;
+    margin: 0;
+  }
+  .text-block { padding-top: var(--spacing-32); padding-bottom: var(--spacing-32); }
+
+  /* Ссылка на живой сайт — крупная, акцентная */
+  .sitelink {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: var(--spacing-24);
+    font-size: var(--text-h3);
+    font-weight: var(--fw-black);
+    color: var(--color-accent);
+    text-decoration: none;
+    border-bottom: 2px solid var(--color-accent);
+    padding-bottom: 2px;
+  }
+  .sitelink:hover { color: var(--color-accent-700); border-color: var(--color-accent-700); }
+  .sitelink__arrow { font-weight: var(--fw-medium); }
+
+  /* ---- Картинка / плейсхолдер во всю ширину ---- */
+  .figure { margin: 0 0 var(--spacing-8); }
+  .figure__media {
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background: var(--surface);
+    aspect-ratio: 16 / 9;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .figure__media img { width: 100%; height: 100%; object-fit: cover; }
+  .figure__ph { color: var(--color-paper-white); }
+  .figure__cap {
+    margin: var(--spacing-8) 0 0;
+    color: var(--color-ink-black);
+  }
+
+  /* ---- Цитата ---- */
+  .quote {
+    font-size: var(--text-h3);
+    line-height: var(--lh-h3);
+    font-weight: var(--fw-black);
+    color: var(--color-ink-black);
+    margin: 0; max-width: 50ch;
+  }
+  .quote__author { margin: var(--spacing-12) 0 0; }
+
+  /* ---- CTA: синяя секция, белый текст ---- */
+  .cta {
+    background: var(--color-accent);
+    margin-top: var(--spacing-48);
+  }
+  .cta__inner { padding-top: var(--spacing-80); padding-bottom: var(--spacing-80); }
+  .cta__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+    font-weight: var(--fw-black);
+    color: var(--color-paper-white);
+    margin: 0 0 var(--spacing-16);
+    max-width: 16ch;
+  }
+  .cta__lead {
+    font-size: var(--text-lead);
+    line-height: var(--lh-lead);
+    color: var(--color-paper-white);
+    max-width: 48ch;
+    margin: 0 0 var(--spacing-32);
+  }
+  .cta__links { display: flex; flex-wrap: wrap; gap: var(--spacing-12); }
+  .cta__link {
+    display: inline-flex; align-items: center;
+    background: var(--color-paper-white);
+    color: var(--color-ink-black);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+    border-radius: var(--radius-pill);
+    padding: 12px 24px;
+  }
+  .cta__link:hover { background: var(--color-paper-white); transform: translateY(-1px); }
+
+  /* ---- Навигация по кейсам ---- */
+  .case-nav {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
-    margin: 40px 0 96px;
+    gap: var(--spacing-8);
+    padding-top: var(--spacing-48);
+    padding-bottom: var(--spacing-96);
   }
-  @media (min-width: 720px) { .case__nav { grid-template-columns: 1fr 1fr; } }
-  .case__nav .box {
-    min-height: 64px;
+  @media (min-width: 720px) { .case-nav { grid-template-columns: 1fr 1fr; } }
+  .case-nav__item {
+    display: flex; flex-direction: column; gap: var(--spacing-4);
+    border: var(--border-w) var(--border-style) var(--border-color);
+    border-radius: var(--radius-card);
+    padding: var(--spacing-24);
     text-decoration: none;
     color: var(--color-ink-black);
-    text-transform: none;
-    font-family: var(--font-sans);
-    letter-spacing: 0;
-    font-size: 14px;
-    padding: 16px;
+    background: var(--color-paper-white);
+  }
+  .case-nav__item--next { text-align: right; align-items: flex-end; }
+  .case-nav__item:hover { background: var(--color-faint-slate); }
+  .case-nav__title { font-size: var(--text-h3); font-weight: var(--fw-black); }
+
+  /* ---- Адаптив ---- */
+  @media (max-width: 767px) {
+    .hero__title { font-size: 40px; }
+    .h2 { font-size: var(--text-h3); }
+    .cta__title { font-size: var(--text-h2); }
   }
 </style>
+
+<script>
+  // Hero-видео: автоплей в зоне видимости, пауза вне (экономит батарею).
+  // prefers-reduced-motion → видео не запускаем, остаётся poster.
+  function initHeroVideo() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const video = document.querySelector<HTMLVideoElement>('video[data-hero-video]');
+    if (!video) return;
+    if (reduce) { video.removeAttribute('autoplay'); video.pause(); return; }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) video.play().catch(() => {});
+          else video.pause();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    io.observe(video);
+  }
+  initHeroVideo();
+  document.addEventListener('astro:page-load', initHeroVideo);
+</script>

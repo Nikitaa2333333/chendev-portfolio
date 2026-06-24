@@ -1,5 +1,15 @@
 export type TileSize = 'small' | 'middle'; // small = 1 юнит (≈2:3 портрет), middle = 2 юнита (≈4:3 ландшафт)
 
+// ── Контент-блоки страницы кейса (см. src/pages/works/[slug].astro) ──
+// Гибкий массив: страница рендерит блоки по порядку. Любой кейс = набор кубиков.
+//   image — большая картинка во всю ширину секции (нет src → плейсхолдер surface-цветом)
+//   text  — текстовая врезка (опц. заголовок + абзац)
+//   quote — цитата
+export interface CaseImageBlock { type: 'image'; src?: string; alt?: string; caption?: string; }
+export interface CaseTextBlock { type: 'text'; heading?: string; body: string; }
+export interface CaseQuoteBlock { type: 'quote'; text: string; author?: string; }
+export type CaseBlock = CaseImageBlock | CaseTextBlock | CaseQuoteBlock;
+
 export interface Work {
   slug: string;
   index: string;
@@ -21,13 +31,26 @@ export interface Work {
   image?: string;    // путь к статике/гифке (jpg/png/webp/gif)
   video?: string;    // путь к .mp4 (muted/loop/playsinline, autoplay по видимости)
   poster?: string;   // кадр-заглушка под видео (показывается до загрузки/при reduce-motion)
-}
 
-export const categories = ['Все', 'Веб', 'Мобильные', 'Брендинг', 'Эксперименты'];
+  // ── Поля страницы кейса (необязательные; см. [slug].astro) ──
+  siteUrl?: string;     // ссылка на живой сайт проекта — гиперссылка в обзоре
+  overview?: string;    // лид-абзац: что за проект, задача, результат
+  blocks?: CaseBlock[]; // контент-блоки страницы по порядку (медиа + текст)
+}
 
 export const works: Work[] = [
   // ряд 1: middle + small + small = 2+1+1 = 4 юнита (как ряд artlebedev: ландшафт + 2 портрета)
-  { slug: 'case-1', index: '01', title: 'Дашборд для финтех-стартапа', client: 'Orbital', year: 2026, category: 'Веб', tags: ['SaaS', 'Дашборд'], surface: '#3B73B9', size: 'middle', row: 1, video: '/works/0624.mp4', poster: '/works/0624.jpg' },
+  { slug: 'case-1', index: '01', title: 'Благородный Север', client: 'Сайт-энциклопедия · разведение благородного оленя', year: 2026, category: 'Веб', tags: ['Энциклопедия', 'Разведение оленей'], surface: '#3B73B9', size: 'middle', row: 1, video: '/works/0624.mp4', poster: '/works/0624.jpg',
+    siteUrl: 'https://noble-farm.ru/',
+    overview: '«Благородный Север» — живой сайт хозяйства, которое разводит благородных европейских оленей в Дмитровском районе Подмосковья по международным стандартам Новой Зеландии и Европы. Задача — показать новую для России отрасль как технологичную и премиальную: племенная работа, генетика стада, пантовое направление. Собрал многостраничный сайт — философия проекта, разделы направлений, карта хозяйства и живая лента новостей прямо с фермы.',
+    blocks: [
+      { type: 'text', heading: 'Задача', body: 'В России оленеводство пока ограничено традиционным северным форматом. Нужно было подать хозяйство как современную, инженерную отрасль — с заботой о каждом животном и опорой на мировой опыт, без аграрной кустарности.' },
+      { type: 'image', caption: 'Главный экран — философия проекта' },
+      { type: 'text', heading: 'Что сделал', body: 'Спроектировал и собрал сайт: структуру разделов (генетика, популяризация, пантовое направление, международный опыт), премиальную типографику, карту хозяйства и блок новостей, который тянет живую ленту с фермы.' },
+      { type: 'image', caption: 'Разделы направлений проекта' },
+      { type: 'image', caption: 'Лента новостей с фермы' },
+    ],
+  },
   { slug: 'case-2', index: '02', title: 'Мобильная читалка', client: 'Halftone', year: 2025, category: 'Мобильные', tags: ['iOS', 'Чтение'], surface: '#7C4A1E', size: 'small', row: 1 },
   { slug: 'case-3', index: '03', title: 'Айдентика devtool-компании', client: 'Tally', year: 2025, category: 'Брендинг', tags: ['Бренд', 'Motion'], surface: '#2C568B', size: 'small', row: 1 },
 
