@@ -59,7 +59,7 @@ const sections: Section[] = [
 
       <div class="hero__grad"></div>
 
-      <a class="hero__back mono" href={withBase('/#works')}>{typo('← к работам')}</a>
+      <a class="hero__back" href={withBase('/#works')}>{typo('← к работам')}</a>
 
       <div class="hero__cap">
         <h1 class="hero__title">{typo(work.title)}</h1>
@@ -168,13 +168,23 @@ const sections: Section[] = [
       transparent 60%
     );
   }
+  /* Кнопка «← к работам» — ЗАФИКСИРОВАНА в шапке (fixed), едет с прокруткой.
+     Крупная, Inter 900. mix-blend-mode: difference → инвертирует фон под собой:
+     над тёмным видео белая, над белой полосой чёрная, над синей — инверт.
+     Текст «проходит» сквозь контент и всегда остаётся контрастным. */
   .hero__back {
-    position: absolute; top: 16px; left: 15px;
+    position: fixed; top: 14px; left: 15px;
+    z-index: 50;
+    display: inline-block;
+    font-size: var(--text-h3);
+    font-weight: var(--fw-black);
+    line-height: 1;
     color: var(--color-paper-white);
     text-decoration: none;
-    z-index: 2;
+    mix-blend-mode: difference;
+    will-change: transform;
   }
-  .hero__back:hover { text-decoration: underline; }
+  @media (prefers-reduced-motion: reduce) { .hero__back { will-change: auto; } }
   .hero__cap {
     position: absolute; left: 15px; right: 15px; bottom: 40px;
     z-index: 2;
