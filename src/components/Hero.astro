@@ -4,10 +4,10 @@
 
 <section class="hero" id="hero">
   <div class="container">
+    <span class="hero__eyebrow">Я — Никита Чендев</span>
+
     <h1 class="hero__title">
-      Я — Никита Чендев.<br />
-      Создаю потрясающие сайты<br />
-      <span class="hero__nowrap">для малого и среднего бизнеса</span>
+      Создаю потрясающие сайты для малого и среднего бизнеса
     </h1>
 
     <p class="hero__lead">
@@ -25,19 +25,27 @@
     color: var(--color-ink-black);
     text-align: center;
   }
-  /* Заголовок: −15% от h1 (72 → ~61px), тот же вес Inter 900.
-     line-height 1.1 → между строками (имя ↔ тэглайн) появляется воздух. */
+  /* Имя — маленькая бирка-эйброу над крупным заголовком. */
+  .hero__eyebrow {
+    display: block;
+    font-size: clamp(18px, 4.6vw, 24px);
+    font-weight: var(--fw-black);
+    color: var(--color-ink-black);
+    margin-bottom: var(--spacing-16);
+  }
+  /* Крупный заголовок — тянется к полям (fluid по ширине экрана), Inter 900.
+     text-wrap: balance равномерно раскидывает по строкам → нет строк-сирот
+     (одинокое «сайты» и т.п.). Форсированных <br> нет — переносы естественные. */
   .hero__title {
-    font-size: calc(var(--text-h1) * 0.85);
-    line-height: 1.1;
+    font-size: clamp(34px, 8.8vw, 76px);
+    line-height: 1.03;
     letter-spacing: var(--tr-h1);
     font-weight: var(--fw-black);
     color: var(--color-ink-black);
+    text-wrap: balance;
     margin: 0 auto var(--spacing-40);
-    max-width: none;
+    max-width: 22ch;
   }
-  /* «для малого и среднего бизнеса» — цельной строкой (на десктопе не рвётся) */
-  .hero__nowrap { white-space: nowrap; }
 
   /* Лид — чисто чёрный (#000), межстрочный 120%. */
   .hero__lead {
@@ -49,20 +57,15 @@
     max-width: 52ch;
     margin: 0 auto;
   }
-  /* «один год» — синяя пилюля (highlight-плашка, акцент #3B73B9), белый текст. */
+  /* «один год» — синяя пилюля (highlight-плашка), белый текст, ОБЫЧНОЕ
+     начертание (вес 500, как лид — не жирный, без подчёркивания). */
   .hero__pill {
     display: inline-block;
     background: var(--color-accent);
     color: var(--color-paper-white);
-    font-weight: var(--fw-black);
+    font-weight: var(--fw-medium);
     border-radius: var(--radius-pill);
     padding: 0.04em 0.5em;
     white-space: nowrap;
-  }
-
-  @media (max-width: 719px) {
-    .hero__title { font-size: clamp(26px, 7.2vw, 38px); max-width: none; }
-    /* На мобилке разрешаем перенос — иначе длинная строка вылезет за экран. */
-    .hero__nowrap { white-space: normal; }
   }
 </style>
