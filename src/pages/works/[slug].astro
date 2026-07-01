@@ -2,6 +2,7 @@
 import Layout from '@/layouts/Layout.astro';
 import Footer from '@/components/Footer.astro';
 import { works } from '@/data/works';
+import { typo } from '@/lib/typo';
 
 export function getStaticPaths() {
   return works.map((w) => ({ params: { slug: w.slug }, props: { work: w } }));
@@ -24,10 +25,19 @@ const contacts = [
   { label: 'chendev2003@gmail.com', href: 'mailto:chendev2003@gmail.com' },
   { label: '+7 953 121 74 77', href: 'tel:+79531217477' },
 ];
+
+// Единый список контент-секций (обзор + блоки), рендер по порядку.
+type Section =
+  | { kind: 'overview' }
+  | { kind: 'block'; block: NonNullable<typeof work.blocks>[number] };
+const sections: Section[] = [
+  ...(work.overview ? [{ kind: 'overview' } as Section] : []),
+  ...((work.blocks ?? []).map((block) => ({ kind: 'block', block }) as Section)),
+];
 ---
 
 <Layout title={`${work.title} — кейс`}>
-  <main class="case">
+  <main class="case" style={`--surface:${work.surface}`}>
     {/* ── Hero: видео/картинка на весь экран ── */}
     <section class="hero" style={`--surface:${work.surface}`}>
       {work.video ? (
@@ -49,59 +59,58 @@ const contacts = [
 
       <div class="hero__grad"></div>
 
-      <a class="hero__back mono" href={withBase('/#works')}>← к работам</a>
+      <a class="hero__back mono" href={withBase('/#works')}>{typo('← к работам')}</a>
 
       <div class="hero__cap">
-        <h1 class="hero__title">{work.title}</h1>
+        <h1 class="hero__title">{typo(work.title)}</h1>
         <p class="hero__tags mono">{work.tags.join(' · ')} · {work.year}</p>
       </div>
-
-      <span class="hero__scroll" aria-hidden="true">↓</span>
     </section>
 
-    {/* ── Обзор + ссылка на сайт ── */}
-    {work.overview && (
-      <section class="sec sec--wrap">
-        <p class="lead">{work.overview}</p>
-        {work.siteUrl && (
-          <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">
-            {siteLabel} <span class="sitelink__arrow" aria-hidden="true">↗</span>
-          </a>
-        )}
-      </section>
-    )}
-
-    {/* ── Контент-блоки (медиа + текст) по порядку ── */}
-    {work.blocks?.map((b) =>
-      b.type === 'text' ? (
-        <section class="sec sec--wrap text-block">
-          {b.heading && <h2 class="h2">{b.heading}</h2>}
-          <p class="body">{b.body}</p>
-        </section>
-      ) : b.type === 'quote' ? (
-        <section class="sec sec--wrap">
-          <blockquote class="quote">{b.text}</blockquote>
-          {b.author && <p class="quote__author mono">{b.author}</p>}
-        </section>
-      ) : (
-        <figure class="figure sec--wrap" style={`--surface:${work.surface}`}>
-          <div class="figure__media">
-            {b.src ? (
-              <img src={withBase(b.src)} alt={b.alt ?? b.caption ?? work.title} loading="lazy" />
-            ) : (
-              <span class="figure__ph mono">[ скрин — заглушка ]</span>
+    {/* ── Обзор + контент-блоки: единый поток полос, фон чередуется белый ↔ цвет ── */}
+    {sections.map((s) => (
+      <section class:list={['band', 'sec--wrap', { 'band--tint': s.kind === 'overview' }]}>
+        {s.kind === 'overview' ? (
+          <div class="overview">
+            {work.overview!.split('\n').filter(Boolean).map((par) => (
+              <p class="lead">{typo(par)}</p>
+            ))}
+            {work.siteUrl && (
+              <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">
+                <svg class="sitelink__chev" viewBox="0 0 10 16" fill="none" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sitelink__text">{siteLabel}</span>
+              </a>
             )}
           </div>
-          {b.caption && <figcaption class="figure__cap mono">{b.caption}</figcaption>}
-        </figure>
-      )
-    )}
+        ) : s.block.type === 'text' ? (
+          <div class="text-block">
+            {s.block.heading && <h2 class="h2">{typo(s.block.heading)}</h2>}
+            <p class="body">{typo(s.block.body)}</p>
+          </div>
+        ) : s.block.type === 'quote' ? (
+          <div>
+            <blockquote class="quote">{typo(s.block.text)}</blockquote>
+            {s.block.author && <p class="quote__author mono">{typo(s.block.author)}</p>}
+          </div>
+        ) : (
+          <figure class="figure">
+            <div class="figure__media">
+              {s.block.src ? (
+                <img src={withBase(s.block.src)} alt={s.block.alt ?? s.block.caption ?? work.title} loading="lazy" />
+              ) : (
+                <span class="figure__ph mono">[ скрин — заглушка ]</span>
+              )}
+            </div>
+            {s.block.caption && <figcaption class="figure__cap mono">{typo(s.block.caption)}</figcaption>}
+          </figure>
+        )}
+      </section>
+    ))}
 
     {/* ── CTA: написать автору ── */}
     <section class="cta">
       <div class="cta__inner sec--wrap">
-        <h2 class="cta__title">Хотите такой же сайт?</h2>
-        <p class="cta__lead">Напишите Никите — обсудим проект и соберём сайт, который работает на вас.</p>
+        <h2 class="cta__title">{typo('Хотите такой же сайт?')}</h2>
+        <p class="cta__lead">{typo('Напишите Никите — обсудим проект и соберём сайт, который работает на вас.')}</p>
         <div class="cta__links">
           {contacts.map((c) => (
             <a class="cta__link" href={c.href}>{c.label}</a>
@@ -114,11 +123,11 @@ const contacts = [
     <nav class="case-nav sec--wrap" aria-label="Другие работы">
       <a class="case-nav__item" href={withBase(`/works/${prev.slug}`)}>
         <span class="mono">← предыдущая</span>
-        <span class="case-nav__title">{prev.title}</span>
+        <span class="case-nav__title">{typo(prev.title)}</span>
       </a>
       <a class="case-nav__item case-nav__item--next" href={withBase(`/works/${next.slug}`)}>
         <span class="mono">следующая →</span>
-        <span class="case-nav__title">{next.title}</span>
+        <span class="case-nav__title">{typo(next.title)}</span>
       </a>
     </nav>
   </main>
@@ -146,15 +155,16 @@ const contacts = [
     width: 100%; height: 100%;
     object-fit: cover;
   }
-  /* Градиент снизу — название читается поверх любого кадра.
+  /* Градиент снизу — В ЦВЕТ КЕЙСА (как на главной у плиток): видео утопает
+     в свой бренд-цвет, белое название читается. Solid surface у самого низа.
      (Разрешённое исключение из «без прозрачностей» — ради читабельности.) */
   .hero__grad {
     position: absolute; inset: 0;
     background: linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.6) 0%,
-      rgba(0, 0, 0, 0.15) 30%,
-      transparent 55%
+      var(--surface) 0%,
+      color-mix(in srgb, var(--surface) 80%, transparent) 25%,
+      transparent 60%
     );
   }
   .hero__back {
@@ -165,7 +175,7 @@ const contacts = [
   }
   .hero__back:hover { text-decoration: underline; }
   .hero__cap {
-    position: absolute; left: 15px; right: 15px; bottom: 56px;
+    position: absolute; left: 15px; right: 15px; bottom: 40px;
     z-index: 2;
   }
   .hero__title {
@@ -177,24 +187,17 @@ const contacts = [
     max-width: 18ch;
   }
   .hero__tags { color: var(--color-paper-white); }
-  .hero__scroll {
-    position: absolute; left: 50%; bottom: 16px;
-    transform: translateX(-50%);
-    color: var(--color-paper-white);
-    font-size: 22px;
-    z-index: 2;
-    animation: heroBob 1.6s ease-in-out infinite;
-  }
-  @keyframes heroBob {
-    0%, 100% { transform: translate(-50%, 0); }
-    50% { transform: translate(-50%, 6px); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .hero__scroll { animation: none; }
-  }
 
-  /* ---- Текстовые секции ---- */
-  .sec { padding: var(--spacing-48) 0; }
+  /* ---- Секции контента (обзор + блоки) ---- */
+  /* ВАЖНО: вертикальные паддинги только -top/-bottom — боковые 15px из .sec--wrap. */
+  .band { padding-top: var(--spacing-48); padding-bottom: var(--spacing-48); }
+  /* Обзор — полоса в цвет проекта, текст и ссылка белые (на цвете → белый).
+     Подтянут вплотную к hero (меньше top): hero + описание = единый блок. */
+  .band--tint { background: var(--surface); color: var(--color-paper-white); padding-top: var(--spacing-24); }
+  .band--tint .lead { color: var(--color-paper-white); }
+  /* На синей полосе ссылка белая (подчёркивание берёт currentColor → тоже белое). */
+  .band--tint .sitelink,
+  .band--tint .sitelink:hover { color: var(--color-paper-white); }
   .lead {
     font-size: var(--text-lead);
     line-height: var(--lh-lead);
@@ -216,24 +219,31 @@ const contacts = [
     max-width: 62ch;
     margin: 0;
   }
-  .text-block { padding-top: var(--spacing-32); padding-bottom: var(--spacing-32); }
+  /* container-type: контейнер для cqw — мобильная ссылка тянется от РЕАЛЬНОЙ
+     ширины блока (без скроллбара, в отличие от 100vw, который его включает). */
+  .overview { container-type: inline-size; }
+  /* Абзацы обзора — интервал между ними */
+  .overview .lead { margin-bottom: var(--spacing-16); }
+  .overview .lead:last-of-type { margin-bottom: 0; }
 
-  /* Ссылка на живой сайт — крупная, акцентная */
+  /* Ссылка на живой сайт — крупная, чёрная. Подчёркивание через text-decoration
+     (строго под буквами, а не во всю ширину блока), тонкое — 1px. */
   .sitelink {
-    display: inline-flex; align-items: center; gap: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1em;
     margin-top: var(--spacing-24);
     font-size: var(--text-h3);
     font-weight: var(--fw-black);
-    color: var(--color-accent);
+    color: var(--color-ink-black);
     text-decoration: none;
-    border-bottom: 2px solid var(--color-accent);
-    padding-bottom: 2px;
   }
-  .sitelink:hover { color: var(--color-accent-700); border-color: var(--color-accent-700); }
-  .sitelink__arrow { font-weight: var(--fw-medium); }
+  /* Apple-style шеврон в начале — тонкий, скруглённый, вплотную к тексту */
+  .sitelink__chev { width: 0.32em; height: 0.51em; flex: none; }
+  .sitelink__text { text-decoration: none; }
 
   /* ---- Картинка / плейсхолдер во всю ширину ---- */
-  .figure { margin: 0 0 var(--spacing-8); }
+  .figure { margin: 0; }
   .figure__media {
     border-radius: var(--radius-card);
     overflow: hidden;
@@ -318,6 +328,13 @@ const contacts = [
     .hero__title { font-size: 40px; }
     .h2 { font-size: var(--text-h3); }
     .cta__title { font-size: var(--text-h2); }
+    /* Ссылка на сайт — крупная на мобилке, в одну строку, почти от края до края.
+       cqw = 1% ширины .overview (без скроллбара) → не переполняется. */
+    .sitelink {
+      white-space: nowrap;
+      font-size: calc(100cqw / 7.9);
+      margin-top: var(--spacing-32);
+    }
   }
 </style>
 
