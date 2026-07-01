@@ -16,9 +16,6 @@ const next = works[(idx + 1) % works.length];
 // База под GitHub Pages в подпапке: пути в works.ts начинаются с '/'.
 const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
-// Чистый домен для подписи ссылки (https://noble-farm.ru/ → noble-farm.ru)
-const siteLabel = work.siteUrl?.replace(/^https?:\/\//, '').replace(/\/$/, '');
-
 // Контакты автора (CTA). Telegram пока заглушка — заменим на реальную ссылку.
 const contacts = [
   { label: 'Telegram', href: '#' },
@@ -77,7 +74,7 @@ const sections: Section[] = [
             ))}
             {work.siteUrl && (
               <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">
-                <svg class="sitelink__chev" viewBox="0 0 10 16" fill="none" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sitelink__text">{siteLabel}</span>
+                <span class="sitelink__text">Посмотреть сайт</span>
               </a>
             )}
           </div>
@@ -226,21 +223,18 @@ const sections: Section[] = [
   .overview .lead { margin-bottom: var(--spacing-16); }
   .overview .lead:last-of-type { margin-bottom: 0; }
 
-  /* Ссылка на живой сайт — крупная, чёрная. Подчёркивание через text-decoration
-     (строго под буквами, а не во всю ширину блока), тонкое — 1px. */
+  /* Ссылка на живой сайт — бирка «Посмотреть сайт», крупная, чёрная,
+     подчёркнута как гиперссылка (строго под буквами, тонко — 1px). */
   .sitelink {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.1em;
+    display: inline-block;
     margin-top: var(--spacing-24);
     font-size: var(--text-h3);
     font-weight: var(--fw-black);
     color: var(--color-ink-black);
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
   }
-  /* Apple-style шеврон в начале — тонкий, скруглённый, вплотную к тексту */
-  .sitelink__chev { width: 0.32em; height: 0.51em; flex: none; }
-  .sitelink__text { text-decoration: none; }
 
   /* ---- Картинка / плейсхолдер во всю ширину ---- */
   .figure { margin: 0; }
