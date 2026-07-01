@@ -9,6 +9,9 @@ export function getStaticPaths() {
 }
 
 const { work } = Astro.props;
+
+// Чистый домен для подписи ссылки (https://noble-farm.ru/ → noble-farm.ru)
+const siteLabel = work.siteUrl?.replace(/^https?:\/\//, '').replace(/\/$/, '');
 const idx = works.findIndex((w) => w.slug === work.slug);
 const prev = works[(idx - 1 + works.length) % works.length];
 const next = works[(idx + 1) % works.length];
@@ -73,9 +76,10 @@ const sections: Section[] = [
               <p class="lead">{typo(par)}</p>
             ))}
             {work.siteUrl && (
-              <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">
-                <span class="sitelink__text">Посмотреть сайт</span>
-              </a>
+              <div class="sitelink-wrap">
+                <span class="sitelink__badge">Посмотреть сайт</span>
+                <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">{siteLabel}</a>
+              </div>
             )}
           </div>
         ) : s.block.type === 'text' ? (
@@ -223,11 +227,21 @@ const sections: Section[] = [
   .overview .lead { margin-bottom: var(--spacing-16); }
   .overview .lead:last-of-type { margin-bottom: 0; }
 
-  /* Ссылка на живой сайт — бирка «Посмотреть сайт», крупная, чёрная,
-     подчёркнута как гиперссылка (строго под буквами, тонко — 1px). */
+  /* Блок ссылки на живой сайт: сверху мелкая бирка «Посмотреть сайт»,
+     под ней — домен крупной чёрной ссылкой, подчёркнут как гиперссылка. */
+  .sitelink-wrap { margin-top: var(--spacing-24); }
+  .sitelink__badge {
+    display: block;
+    font-size: var(--text-caption);
+    font-weight: var(--fw-medium);
+    color: var(--color-ink-black);
+    margin-bottom: var(--spacing-4);
+  }
+  .band--tint .sitelink__badge { color: var(--color-paper-white); }
   .sitelink {
     display: inline-block;
-    margin-top: var(--spacing-24);
+    max-width: 100%;
+    overflow-wrap: anywhere;
     font-size: var(--text-h3);
     font-weight: var(--fw-black);
     color: var(--color-ink-black);
@@ -322,12 +336,12 @@ const sections: Section[] = [
     .hero__title { font-size: 40px; }
     .h2 { font-size: var(--text-h3); }
     .cta__title { font-size: var(--text-h2); }
-    /* Ссылка на сайт — крупная на мобилке, в одну строку, почти от края до края.
-       cqw = 1% ширины .overview (без скроллбара) → не переполняется. */
+    /* Ссылка на сайт — крупная на мобилке, домен в одну строку, почти от края
+       до края. cqw = 1% ширины .overview (без скроллбара) → не переполняется. */
+    .sitelink-wrap { margin-top: var(--spacing-32); }
     .sitelink {
       white-space: nowrap;
       font-size: calc(100cqw / 7.9);
-      margin-top: var(--spacing-32);
     }
   }
 </style>
