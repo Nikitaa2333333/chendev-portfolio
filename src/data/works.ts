@@ -25,6 +25,9 @@ export interface Work {
   //   'cover'   (по умолчанию) — full-bleed, обрезка под край (скрин/видео во всю плитку).
   //   'contain' — объект по центру, surface-цвет заливает свободные поля (лого/мокап/прозрачный PNG).
   fit?: 'cover' | 'contain';
+  // Спец-плитка: вместо медиа — анимированное синее свечение на CSS (orbit+pulse)
+  // + минимальный glass-пилюль с откликом на нажатие. См. Works.astro.
+  variant?: 'glow';
   // Медиа плитки (приоритет: video → image → только surface-цвет).
   // video автоплеится ТОЛЬКО в зоне видимости (IntersectionObserver в Works.astro),
   // при prefers-reduced-motion видео не запускается — остаётся poster.
@@ -52,7 +55,15 @@ export const works: Work[] = [
     ],
   },
   { slug: 'case-2', index: '02', title: 'Мобильная читалка', client: 'Halftone', year: 2025, category: 'Мобильные', tags: ['iOS', 'Чтение'], surface: '#7C4A1E', size: 'small', row: 1 },
-  { slug: 'case-3', index: '03', title: 'Айдентика devtool-компании', client: 'Tally', year: 2025, category: 'Брендинг', tags: ['Бренд', 'Motion'], surface: '#2C568B', size: 'small', row: 1 },
+  { slug: 'management-pro', index: '03', title: 'МЕНЕДЖМЕНТ.PRO', client: 'B2B-аутрич через Telegram', year: 2026, category: 'Веб', tags: ['Лендинг', 'B2B'], surface: '#0a0b0d', size: 'small', row: 1, variant: 'glow',
+    siteUrl: 'https://nikitaa2333333.github.io/management-pro-landing/',
+    overview: 'МЕНЕДЖМЕНТ.PRO — система привлечения B2B-клиентов через холодный аутрич в Telegram. Выходим напрямую на ЛПР, минуя секретарей и холодные звонки: конверсия 8–15% в ответ против 1–2% у обзвона.\nСобрал лендинг: живой герой с анимированной воронкой лидов, блоки методики, кейсы и FAQ.',
+    blocks: [
+      { type: 'text', heading: 'Задача', body: 'Показать холодный аутрич не как спам, а как экспертную работу: каждое касание — персональное сообщение после изучения бизнеса получателя. Нужен лендинг, который сразу передаёт технологичность и «живость» системы.' },
+      { type: 'text', heading: 'Что сделал', body: 'Собрал одностраничник с анимированным героем (воронка лидов + синее свечение на чистом CSS, без видео), блоками методики «4–5 касаний с нарастающей ценностью», кейсами (ВТБ, Т-Банк, Консоль.ПРО) и FAQ. Всё свечение и glassmorphism — код, поэтому грузится мгновенно и чётко на любом экране.' },
+      { type: 'quote', text: 'Конверсия 8% → 32%. Цикл сделки 90 → 35 дней. +7,6 млн ₽ за квартал из спящей базы.' },
+    ],
+  },
 
   // ряд 2: small + small + middle = 1+1+2 = 4 юнита (зеркальный ритм: 2 портрета + ландшафт)
   { slug: 'case-4', index: '04', title: 'CSS-движок для вёрстки', client: 'Open source', year: 2025, category: 'Эксперименты', tags: ['CSS', 'Тулинг'], surface: '#1E3A5D', size: 'small', row: 2 },

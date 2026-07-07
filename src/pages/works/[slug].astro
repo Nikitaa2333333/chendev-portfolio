@@ -55,6 +55,11 @@ const sections: Section[] = [
         </video>
       ) : work.image ? (
         <img class="hero__media" src={withBase(work.image)} alt={work.title} />
+      ) : work.variant === 'glow' ? (
+        <div class="hero__glow" aria-hidden="true">
+          <div class="glow__ring"></div>
+          <div class="glow__blob"></div>
+        </div>
       ) : null}
 
       <div class="hero__grad"></div>
@@ -155,6 +160,47 @@ const sections: Section[] = [
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
+  }
+  /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
+     Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
+  .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }
+  .hero__glow .glow__ring {
+    position: absolute; top: 50%; left: 50%;
+    width: min(120vh, 92vw); aspect-ratio: 1; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(60px) brightness(1.7) saturate(1.3);
+    background: radial-gradient(circle,
+      transparent 34%,
+      rgba(96,165,250,1) 43%,
+      rgba(37,99,235,1) 50%,
+      rgba(37,99,235,0.75) 57%,
+      transparent 66%);
+    animation: hero-glow-pulse 4s ease-in-out infinite;
+  }
+  .hero__glow .glow__blob {
+    position: absolute; top: 50%; left: 50%;
+    width: min(70vh, 60vw); aspect-ratio: 1; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(70px) brightness(1.6) saturate(1.3);
+    background: radial-gradient(circle,
+      rgba(147,197,253,1) 0%,
+      rgba(59,130,246,1) 42%,
+      transparent 70%);
+    animation: hero-glow-orbit 5s linear infinite;
+  }
+  @keyframes hero-glow-pulse {
+    0%, 100% { opacity: .9; transform: translate(-50%, -50%) scale(.99); }
+    50%      { opacity: 1;  transform: translate(-50%, -50%) scale(1.08); }
+  }
+  @keyframes hero-glow-orbit {
+    0%   { transform: translate(-50%, -50%) translate(0, -12%); }
+    25%  { transform: translate(-50%, -50%) translate(10%, 0); }
+    50%  { transform: translate(-50%, -50%) translate(0, 12%); }
+    75%  { transform: translate(-50%, -50%) translate(-10%, 0); }
+    100% { transform: translate(-50%, -50%) translate(0, -12%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__glow .glow__ring, .hero__glow .glow__blob { animation: none; }
   }
   /* Градиент снизу — В ЦВЕТ КЕЙСА (как на главной у плиток): видео утопает
      в свой бренд-цвет, белое название читается. Solid surface у самого низа.
