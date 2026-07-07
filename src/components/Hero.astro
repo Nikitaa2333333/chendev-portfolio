@@ -41,11 +41,13 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     background: var(--color-paper-white);
     color: var(--color-ink-black);
   }
-  /* Медиа во всю ширину, высота с потолком; лицо — в верхней части кадра. */
+  /* Медиа во всю ширину, соотношение 16:9 (меньше обрезки, чем узкая полоса).
+     Потолок по высоте — чтобы на коротких экранах не улетало. */
   .hero__media {
     position: relative;
     width: 100%;
-    height: min(68vh, 620px);
+    aspect-ratio: 16 / 9;
+    max-height: 86vh;
     overflow: hidden;
   }
   .hero__asset {
@@ -53,7 +55,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 22%;
+    object-position: center 30%;
   }
   /* Градиент: низ фото растворяется в белый фон страницы (для читабельности —
      разрешённое исключение из «без прозрачностей»). Текст ляжет на белую зону. */
@@ -104,7 +106,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   }
 
   @media (max-width: 719px) {
-    .hero__media { height: min(56vh, 460px); }
     .hero__body { margin-top: -9vh; }
   }
 </style>
