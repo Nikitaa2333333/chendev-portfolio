@@ -74,6 +74,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     right: 0;
     bottom: 0;
     height: 55%;
+    z-index: 2;   /* поверх видео (video z-index:1), иначе градиент перекрывается */
     background: linear-gradient(to bottom, transparent, var(--color-paper-white));
   }
   /* Текст подтянут вверх — ложится на градиент/растворённый низ фото. */

@@ -216,6 +216,7 @@ const sections: Section[] = [
      (Разрешённое исключение из «без прозрачностей» — ради читабельности.) */
   .hero__grad {
     position: absolute; inset: 0;
+    z-index: 2;   /* поверх видео (video z-index:1), иначе градиент перекрывается */
     background: linear-gradient(
       to top,
       var(--surface) 0%,
