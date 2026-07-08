@@ -41,18 +41,24 @@ const sections: Section[] = [
     {/* ── Hero: видео/картинка на весь экран ── */}
     <section class="hero" style={`--surface:${work.surface}`}>
       {work.video ? (
-        <video
-          class="hero__media"
-          data-hero-video
-          muted
-          loop
-          playsinline
-          preload="auto"
-          autoplay
-          poster={work.poster ? withBase(work.poster) : undefined}
-        >
-          <source src={withBase(work.video)} type="video/mp4" />
-        </video>
+        <>
+          {work.poster && (
+            <img class="hero__media hero__poster" src={withBase(work.poster)} alt={work.title} />
+          )}
+          <video
+            class="hero__media hero__video"
+            data-hero-video
+            muted
+            loop
+            playsinline
+            webkit-playsinline
+            preload="auto"
+            autoplay
+            poster={work.poster ? withBase(work.poster) : undefined}
+          >
+            <source src={withBase(work.video)} type="video/mp4" />
+          </video>
+        </>
       ) : work.image ? (
         <img class="hero__media" src={withBase(work.image)} alt={work.title} />
       ) : work.variant === 'glow' ? (
@@ -161,6 +167,9 @@ const sections: Section[] = [
     width: 100%; height: 100%;
     object-fit: cover;
   }
+  .hero__poster { z-index: 0; }   /* статичный кадр — виден сразу, пока грузится видео */
+  .hero__video { z-index: 1; }    /* видео поверх; прячется, если автоплей заблокирован */
+  .hero__video[hidden] { display: none; }
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
   .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }
@@ -404,18 +413,25 @@ const sections: Section[] = [
 
 <script>
   // Hero-видео: автоплей в зоне видимости, пауза вне (экономит батарею).
-  // prefers-reduced-motion → видео не запускаем, остаётся poster.
+  // Если браузер блокирует автоплей (iOS Low Power и т.п.) → прячем видео,
+  // под ним остаётся статичный постер (без мёртвой системной кнопки play).
+  // prefers-reduced-motion → тоже остаётся постер.
   function initHeroVideo() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const video = document.querySelector<HTMLVideoElement>('video[data-hero-video]');
     if (!video) return;
-    if (reduce) { video.removeAttribute('autoplay'); video.pause(); return; }
+    const fallbackToPoster = () => { video.hidden = true; video.pause(); };
+    if (reduce) { fallbackToPoster(); return; }
 
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) video.play().catch(() => {});
-          else video.pause();
+          if (e.isIntersecting) {
+            const p = video.play();
+            if (p && typeof p.catch === 'function') p.catch(fallbackToPoster);
+          } else {
+            video.pause();
+          }
         }
       },
       { threshold: 0.25 }

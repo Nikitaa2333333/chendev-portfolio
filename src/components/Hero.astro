@@ -7,12 +7,16 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
 <section class="hero" id="hero">
   <div class="hero__media">
+    <!-- Статичный кадр — всегда под видео. Если браузер блокирует автоплей
+         (iOS Low Power и т.п.), прячем видео и остаётся он — без мёртвой кнопки play. -->
+    <img class="hero__asset hero__poster" src={withBase('/hero-poster.webp')} alt="Никита Чендев" />
     <video
-      class="hero__asset"
+      class="hero__asset hero__video"
       data-hero-video
       muted
       loop
       playsinline
+      webkit-playsinline
       autoplay
       preload="auto"
       poster={withBase('/hero-poster.webp')}
@@ -51,12 +55,17 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     overflow: hidden;
   }
   .hero__asset {
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center 30%;
   }
+  .hero__poster { z-index: 0; }   /* статичный кадр под видео */
+  .hero__video { z-index: 1; }    /* видео поверх; прячется, если автоплей заблокирован */
+  .hero__video[hidden] { display: none; }
   /* Градиент: низ фото растворяется в белый фон страницы (для читабельности —
      разрешённое исключение из «без прозрачностей»). Текст ляжет на белую зону. */
   .hero__fade {
@@ -112,16 +121,23 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
 <script>
   // Hero-видео: играет в зоне видимости, пауза вне (экономит батарею).
-  // prefers-reduced-motion → не запускаем, остаётся poster.
+  // Если браузер блокирует автоплей (iOS Low Power и т.п.) → прячем видео,
+  // остаётся статичный постер (без мёртвой системной кнопки play).
+  // prefers-reduced-motion → тоже остаётся постер.
   function initHeroVideo() {
     const v = document.querySelector<HTMLVideoElement>('[data-hero-video]');
     if (!v) return;
+    const fallbackToPoster = () => { v.hidden = true; v.pause(); };
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { v.removeAttribute('autoplay'); v.pause(); return; }
+    if (reduce) { fallbackToPoster(); return; }
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) v.play().catch(() => {});
-        else v.pause();
+        if (e.isIntersecting) {
+          const p = v.play();
+          if (p && typeof p.catch === 'function') p.catch(fallbackToPoster);
+        } else {
+          v.pause();
+        }
       }
     }, { threshold: 0.15 });
     io.observe(v);
