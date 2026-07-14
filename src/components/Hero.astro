@@ -26,16 +26,26 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     <div class="hero__fade"></div>
 
     <div class="hero__body container">
-      <span class="hero__eyebrow">Я — Никита Чендев</span>
+      <div class="hero__main">
+        <span class="hero__eyebrow">Я — Никита Чендев</span>
 
-      <h1 class="hero__title">
-        Создаю потрясающие сайты для малого и среднего бизнеса
-      </h1>
+        <h1 class="hero__title">
+          Создаю потрясающие сайты для малого и среднего бизнеса
+        </h1>
+      </div>
 
-      <p class="hero__lead">
-        Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
-        с уникальным дизайном за две недели и бесплатной гарантией один год.
-      </p>
+      <div class="hero__side">
+        <p class="hero__lead">
+          Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
+          с уникальным дизайном за две недели и бесплатной гарантией один год.
+        </p>
+        <div class="hero__links">
+          <a href="https://t.me/">Telegram</a>
+          <a href="#">Макс</a>
+          <a href="mailto:chendev2003@gmail.com">Почта</a>
+          <a href="#">Instagram</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -82,13 +92,18 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       transparent 70%
     );
   }
-  /* Текст ЛЕЖИТ НА ВИДЕО: внизу слева, белым, по левому краю. */
+  /* Текст ЛЕЖИТ НА ВИДЕО: заголовок внизу слева, лид — внизу справа.
+     Разнесены по углам, чтобы не накрывать лицо в центре кадра. */
   .hero__body {
     position: absolute;
     left: 0;
     right: 0;
     bottom: var(--spacing-32);
     z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--spacing-48);
     text-align: left;
   }
   /* Имя — бирка-эйброу над крупным заголовком. */
@@ -99,33 +114,57 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     color: var(--color-paper-white);
     margin-bottom: var(--spacing-12);
   }
-  /* Крупный заголовок — Inter 900, без строк-сирот. */
+  /* Заголовок — токен h2 (уменьшен с гигантского clamp, чтобы не накрывал
+     кадр), Inter 900, без строк-сирот. */
   .hero__title {
-    font-size: clamp(34px, 8.8vw, 76px);
-    line-height: 1.03;
-    letter-spacing: var(--tr-h1);
+    font-size: var(--text-h2);
+    line-height: 1.05;
+    letter-spacing: var(--tr-h2);
     font-weight: var(--fw-black);
     color: var(--color-paper-white);
     text-wrap: balance;
-    margin: 0 0 var(--spacing-24);
+    margin: 0;
     max-width: 22ch;
   }
-  /* Лид — белый на видео, межстрочный 120%. */
+  /* Правая колонка: лид + строка гиперссылок-контактов. */
+  .hero__side { max-width: 46ch; }
   .hero__lead {
     font-size: var(--text-lead);
     line-height: 1.2;
     letter-spacing: var(--tr-lead);
     font-weight: var(--fw-medium);
     color: var(--color-paper-white);
-    max-width: 52ch;
-    margin: 0;
+    margin: 0 0 0.8em;
   }
+  /* Контакты — стандарт текстовой ссылки: белые, линия sky-tint, на ховере белеет. */
+  .hero__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-16);
+  }
+  .hero__links a {
+    font-size: var(--text-lead);
+    font-weight: var(--fw-medium);
+    color: var(--color-paper-white);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-skip-ink: none;
+    text-decoration-color: var(--color-sky-tint);
+  }
+  .hero__links a:hover { text-decoration-color: var(--color-paper-white); }
 
   /* Мобилка: 16:9 слишком низкий для наложенного текста — медиа растёт
-     в высоту (кадрируется cover'ом), текст помещается на нём. */
+     в высоту (кадрируется cover'ом). Заголовок и лид — стопкой слева. */
   @media (max-width: 719px) {
     .hero__media { aspect-ratio: auto; height: 78svh; }
-    .hero__body { bottom: var(--spacing-24); }
+    .hero__body {
+      bottom: var(--spacing-24);
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-16);
+    }
+    .hero__side { max-width: 52ch; }
   }
 </style>
 
