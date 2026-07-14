@@ -182,8 +182,9 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     .hero__eyebrow,
     .hero__title,
     .hero__lead { color: var(--color-ink-black); }
-    /* Лид растянут от края до края — выключка по обоим краям */
-    .hero__lead { text-align: justify; }
+    /* Лид крупнее, пропорционально ширине экрана (∝vw) — строки сами
+       дотягиваются до правого поля; выключка обычная, по левому краю */
+    .hero__lead { font-size: 5vw; }
     .hero__side { flex: none; width: 100%; min-width: 0; }
     /* Ссылки на белом — чёрные, линия blue-gray-mist (стандарт для белого фона) */
     .hero__links a {
