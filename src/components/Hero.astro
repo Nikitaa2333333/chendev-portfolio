@@ -1,6 +1,7 @@
 ---
-// Hero: фото/видео автора во всю ширину, ТЕКСТ ЛЕЖИТ НА ВИДЕО — внизу слева,
-// белым, поверх тёмного градиента (как на hero страниц кейсов).
+// Hero: фото/видео автора во всю ширину. Десктоп: ТЕКСТ ЛЕЖИТ НА ВИДЕО
+// (заголовок слева, лид+контакты справа), белым, поверх тёмного градиента.
+// Мобилка ≤719px: текст ПОД видео, отдельным блоком на белом, чёрным.
 // Вариант GIF (video.mp4 → сжат в public/hero.mp4). Постер — public/hero-poster.webp.
 const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 ---
@@ -24,27 +25,27 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       <source src={withBase('/hero.mp4')} type="video/mp4" />
     </video>
     <div class="hero__fade"></div>
+  </div>
 
-    <div class="hero__body container">
-      <div class="hero__main">
-        <span class="hero__eyebrow">Я — Никита Чендев</span>
+  <div class="hero__body container">
+    <div class="hero__main">
+      <span class="hero__eyebrow">Я — Никита Чендев</span>
 
-        <h1 class="hero__title">
-          Создаю потрясающие сайты для малого и среднего бизнеса
-        </h1>
-      </div>
+      <h1 class="hero__title">
+        Создаю потрясающие сайты для малого и среднего бизнеса
+      </h1>
+    </div>
 
-      <div class="hero__side">
-        <p class="hero__lead">
-          Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
-          с уникальным дизайном за две недели и бесплатной гарантией один год.
-        </p>
-        <div class="hero__links">
-          <a href="https://t.me/">Telegram</a>
-          <a href="#">Макс</a>
-          <a href="mailto:chendev2003@gmail.com">Почта</a>
-          <a href="#">Instagram</a>
-        </div>
+    <div class="hero__side">
+      <p class="hero__lead">
+        Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
+        с уникальным дизайном за две недели и бесплатной гарантией один год.
+      </p>
+      <div class="hero__links">
+        <a href="https://t.me/">Telegram</a>
+        <a href="#">Макс</a>
+        <a href="mailto:chendev2003@gmail.com">Почта</a>
+        <a href="#">Instagram</a>
       </div>
     </div>
   </div>
@@ -52,6 +53,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
 <style>
   .hero {
+    position: relative; /* якорь для absolute-текста на десктопе */
     background: var(--color-paper-white);
     color: var(--color-ink-black);
   }
@@ -159,17 +161,29 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   }
   .hero__links a:hover { text-decoration-color: var(--color-paper-white); }
 
-  /* Мобилка: 16:9 слишком низкий для наложенного текста — медиа растёт
-     в высоту (кадрируется cover'ом). Заголовок и лид — стопкой слева. */
+  /* ── Мобилка: текст НЕ на видео (перекрывал человека в кадре), а ПОД ним —
+     отдельным блоком на белой подложке, чёрным (правило: на белом — чёрный).
+     Видео остаётся чистым блоком 16:9 сверху, градиент не нужен. ── */
   @media (max-width: 719px) {
-    .hero__media { aspect-ratio: auto; height: 78svh; }
+    .hero__fade { display: none; }
     .hero__body {
-      bottom: var(--spacing-24);
+      position: static;
       flex-direction: column;
       align-items: flex-start;
       gap: var(--spacing-16);
+      padding-top: var(--spacing-24);
+      padding-bottom: var(--spacing-8);
     }
+    .hero__eyebrow,
+    .hero__title,
+    .hero__lead { color: var(--color-ink-black); }
     .hero__side { flex: none; width: 100%; min-width: 0; }
+    /* Ссылки на белом — чёрные, линия blue-gray-mist (стандарт для белого фона) */
+    .hero__links a {
+      color: var(--color-ink-black);
+      text-decoration-color: var(--color-blue-gray-mist);
+    }
+    .hero__links a:hover { text-decoration-color: var(--color-ink-black); }
   }
 </style>
 
