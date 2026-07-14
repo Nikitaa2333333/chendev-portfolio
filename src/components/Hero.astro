@@ -1,6 +1,6 @@
 ---
-// Hero: фото/видео автора во всю ширину сверху, низ растворяется градиентом
-// в белый фон страницы, текст ложится на градиент.
+// Hero: фото/видео автора во всю ширину, ТЕКСТ ЛЕЖИТ НА ВИДЕО — внизу слева,
+// белым, поверх тёмного градиента (как на hero страниц кейсов).
 // Вариант GIF (video.mp4 → сжат в public/hero.mp4). Постер — public/hero-poster.webp.
 const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 ---
@@ -24,19 +24,19 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       <source src={withBase('/hero.mp4')} type="video/mp4" />
     </video>
     <div class="hero__fade"></div>
-  </div>
 
-  <div class="hero__body container">
-    <span class="hero__eyebrow">Я — Никита Чендев</span>
+    <div class="hero__body container">
+      <span class="hero__eyebrow">Я — Никита Чендев</span>
 
-    <h1 class="hero__title">
-      Создаю потрясающие сайты для малого и среднего бизнеса
-    </h1>
+      <h1 class="hero__title">
+        Создаю потрясающие сайты для малого и среднего бизнеса
+      </h1>
 
-    <p class="hero__lead">
-      Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
-      с уникальным дизайном за две недели и бесплатной гарантией один год.
-    </p>
+      <p class="hero__lead">
+        Делаю сайты с нуля, без шаблона и конструктора. Вы получаете сайт
+        с уникальным дизайном за две недели и бесплатной гарантией один год.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -66,57 +66,66 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   .hero__poster { z-index: 0; }   /* статичный кадр под видео */
   .hero__video { z-index: 1; }    /* видео поверх; прячется, если автоплей заблокирован */
   .hero__video[hidden] { display: none; }
-  /* Градиент: низ фото растворяется в белый фон страницы (для читабельности —
-     разрешённое исключение из «без прозрачностей»). Текст ляжет на белую зону. */
+  /* Тёмный градиент снизу — текст читается на любом кадре (тот же рецепт,
+     что на hero кейсов; разрешённое исключение из «без прозрачностей»). */
   .hero__fade {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 55%;
+    height: 75%;
     z-index: 2;   /* поверх видео (video z-index:1), иначе градиент перекрывается */
-    background: linear-gradient(to bottom, transparent, var(--color-paper-white));
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.15) 45%,
+      transparent 70%
+    );
   }
-  /* Текст подтянут вверх — ложится на градиент/растворённый низ фото. */
+  /* Текст ЛЕЖИТ НА ВИДЕО: внизу слева, белым, по левому краю. */
   .hero__body {
-    position: relative;
-    z-index: 1;
-    margin-top: -7vh;
-    padding-bottom: var(--spacing-16);
-    text-align: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--spacing-32);
+    z-index: 3;
+    text-align: left;
   }
   /* Имя — бирка-эйброу над крупным заголовком. */
   .hero__eyebrow {
     display: block;
     font-size: clamp(18px, 4.6vw, 34px);
     font-weight: var(--fw-black);
-    color: var(--color-ink-black);
-    margin-bottom: var(--spacing-16);
+    color: var(--color-paper-white);
+    margin-bottom: var(--spacing-12);
   }
-  /* Крупный заголовок — тянется к полям, Inter 900, без строк-сирот. */
+  /* Крупный заголовок — Inter 900, без строк-сирот. */
   .hero__title {
     font-size: clamp(34px, 8.8vw, 76px);
     line-height: 1.03;
     letter-spacing: var(--tr-h1);
     font-weight: var(--fw-black);
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
     text-wrap: balance;
-    margin: 0 auto var(--spacing-40);
+    margin: 0 0 var(--spacing-24);
     max-width: 22ch;
   }
-  /* Лид — чисто чёрный (#000), межстрочный 120%. */
+  /* Лид — белый на видео, межстрочный 120%. */
   .hero__lead {
     font-size: var(--text-lead);
     line-height: 1.2;
     letter-spacing: var(--tr-lead);
     font-weight: var(--fw-medium);
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
     max-width: 52ch;
-    margin: 0 auto;
+    margin: 0;
   }
 
+  /* Мобилка: 16:9 слишком низкий для наложенного текста — медиа растёт
+     в высоту (кадрируется cover'ом), текст помещается на нём. */
   @media (max-width: 719px) {
-    .hero__body { margin-top: -9vh; }
+    .hero__media { aspect-ratio: auto; height: 78svh; }
+    .hero__body { bottom: var(--spacing-24); }
   }
 </style>
 

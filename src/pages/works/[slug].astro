@@ -38,28 +38,9 @@ const sections: Section[] = [
 
 <Layout title={`${work.title} — кейс`}>
   <main class="case" style={`--surface:${work.surface}`}>
-    {/* ── Hero: видео/картинка на весь экран ── */}
+    {/* ── Hero: статичная обложка на весь экран (видео в кейсах запрещено — CLAUDE.md) ── */}
     <section class="hero" style={`--surface:${work.surface}`}>
-      {work.video ? (
-        <>
-          {work.poster && (
-            <img class="hero__media hero__poster" src={withBase(work.poster)} alt={work.title} />
-          )}
-          <video
-            class="hero__media hero__video"
-            data-hero-video
-            muted
-            loop
-            playsinline
-            webkit-playsinline
-            preload="auto"
-            autoplay
-            poster={work.poster ? withBase(work.poster) : undefined}
-          >
-            <source src={withBase(work.video)} type="video/mp4" />
-          </video>
-        </>
-      ) : work.image ? (
+      {work.image ? (
         <img class="hero__media" src={withBase(work.image)} alt={work.title} />
       ) : work.variant === 'glow' ? (
         <div class="hero__glow" aria-hidden="true">
@@ -94,9 +75,11 @@ const sections: Section[] = [
             )}
           </div>
         ) : s.block.type === 'text' ? (
-          <div class="text-block">
-            {s.block.heading && <h2 class="h2">{typo(s.block.heading)}</h2>}
-            <p class="body">{typo(s.block.body)}</p>
+          <div class="prose">
+            {s.block.heading && <h2>{typo(s.block.heading)}</h2>}
+            {s.block.body.split('\n').filter(Boolean).map((par) => (
+              <p>{typo(par)}</p>
+            ))}
           </div>
         ) : s.block.type === 'quote' ? (
           <div>
@@ -167,9 +150,6 @@ const sections: Section[] = [
     width: 100%; height: 100%;
     object-fit: cover;
   }
-  .hero__poster { z-index: 0; }   /* статичный кадр — виден сразу, пока грузится видео */
-  .hero__video { z-index: 1; }    /* видео поверх; прячется, если автоплей заблокирован */
-  .hero__video[hidden] { display: none; }
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
   .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }
@@ -211,12 +191,12 @@ const sections: Section[] = [
   @media (prefers-reduced-motion: reduce) {
     .hero__glow .glow__ring, .hero__glow .glow__blob { animation: none; }
   }
-  /* Градиент снизу — В ЦВЕТ КЕЙСА (как на главной у плиток): видео утопает
+  /* Градиент снизу — В ЦВЕТ КЕЙСА (как на главной у плиток): обложка утопает
      в свой бренд-цвет, белое название читается. Solid surface у самого низа.
      (Разрешённое исключение из «без прозрачностей» — ради читабельности.) */
   .hero__grad {
     position: absolute; inset: 0;
-    z-index: 2;   /* поверх видео (video z-index:1), иначе градиент перекрывается */
+    z-index: 2;
     background: linear-gradient(
       to top,
       var(--surface) 0%,
@@ -250,7 +230,7 @@ const sections: Section[] = [
     font-size: var(--text-h1);
     line-height: var(--lh-h1);
     font-weight: var(--fw-black);
-    margin: 0 0 var(--spacing-12);
+    margin: 0 0 0.15em;
     max-width: 18ch;
   }
   .hero__tags { color: var(--color-paper-white); }
@@ -262,35 +242,25 @@ const sections: Section[] = [
      Подтянут вплотную к hero (меньше top): hero + описание = единый блок. */
   .band--tint { background: var(--surface); color: var(--color-paper-white); padding-top: var(--spacing-24); }
   .band--tint .lead { color: var(--color-paper-white); }
-  /* На синей полосе ссылка белая (подчёркивание берёт currentColor → тоже белое). */
+  /* На цветной полосе ссылка белая, подчёркивание — светлым тоном, на ховере белеет. */
   .band--tint .sitelink,
   .band--tint .sitelink:hover { color: var(--color-paper-white); }
+  .band--tint .sitelink { text-decoration-color: var(--color-sky-tint); }
+  .band--tint .sitelink:hover { text-decoration-color: var(--color-paper-white); }
   .lead {
     font-size: var(--text-lead);
     line-height: var(--lh-lead);
     color: var(--color-ink-black);
-    max-width: 62ch;
+    max-width: var(--measure);
     margin: 0;
   }
-  .h2 {
-    font-size: var(--text-h2);
-    line-height: var(--lh-h2);
-    font-weight: var(--fw-black);
-    color: var(--color-ink-black);
-    margin: 0 0 var(--spacing-16);
-  }
-  .body {
-    font-size: var(--text-body);
-    line-height: var(--lh-body);
-    color: var(--color-ink-black);
-    max-width: 62ch;
-    margin: 0;
-  }
+  /* Текстовые блоки кейса набираются эталоном .prose (global.css) —
+     нативные теги, флюидные токены, отступы в em, мера var(--measure). */
   /* container-type: контейнер для cqw — мобильная ссылка тянется от РЕАЛЬНОЙ
      ширины блока (без скроллбара, в отличие от 100vw, который его включает). */
   .overview { container-type: inline-size; }
-  /* Абзацы обзора — интервал между ними */
-  .overview .lead { margin-bottom: var(--spacing-16); }
+  /* Абзацы обзора — интервал между ними (em → едет с кеглем) */
+  .overview .lead { margin-bottom: 0.8em; }
   .overview .lead:last-of-type { margin-bottom: 0; }
 
   /* Блок ссылки на живой сайт: сверху мелкая бирка «Посмотреть сайт»,
@@ -313,8 +283,11 @@ const sections: Section[] = [
     color: var(--color-ink-black);
     text-decoration: underline;
     text-decoration-thickness: 1px;
-    text-underline-offset: 0.18em;
+    text-underline-offset: 0.2em;
+    text-decoration-skip-ink: none;
+    text-decoration-color: var(--color-blue-gray-mist);
   }
+  .sitelink:hover { text-decoration-color: var(--color-ink-black); }
 
   /* ---- Картинка / плейсхолдер во всю ширину ---- */
   .figure { margin: 0; }
@@ -353,7 +326,7 @@ const sections: Section[] = [
     line-height: var(--lh-h1);
     font-weight: var(--fw-black);
     color: var(--color-paper-white);
-    margin: 0 0 var(--spacing-16);
+    margin: 0 0 0.25em;
     max-width: 16ch;
   }
   .cta__lead {
@@ -397,11 +370,10 @@ const sections: Section[] = [
   .case-nav__item:hover { background: var(--color-faint-slate); }
   .case-nav__title { font-size: var(--text-h3); font-weight: var(--fw-black); }
 
-  /* ---- Адаптив ---- */
+  /* ---- Адаптив ----
+     Ручных мобильных кеглей больше нет — флюидные токены сами
+     ужимают h1/h2 на узких экранах (clamp в global.css). */
   @media (max-width: 767px) {
-    .hero__title { font-size: 40px; }
-    .h2 { font-size: var(--text-h3); }
-    .cta__title { font-size: var(--text-h2); }
     /* Ссылка на сайт — крупная на мобилке, домен в одну строку, почти от края
        до края. cqw = 1% ширины .overview (без скроллбара) → не переполняется. */
     .sitelink-wrap { margin-top: var(--spacing-32); }
@@ -411,34 +383,3 @@ const sections: Section[] = [
     }
   }
 </style>
-
-<script>
-  // Hero-видео: автоплей в зоне видимости, пауза вне (экономит батарею).
-  // Если браузер блокирует автоплей (iOS Low Power и т.п.) → прячем видео,
-  // под ним остаётся статичный постер (без мёртвой системной кнопки play).
-  // prefers-reduced-motion → тоже остаётся постер.
-  function initHeroVideo() {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const video = document.querySelector<HTMLVideoElement>('video[data-hero-video]');
-    if (!video) return;
-    const fallbackToPoster = () => { video.hidden = true; video.pause(); };
-    if (reduce) { fallbackToPoster(); return; }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            const p = video.play();
-            if (p && typeof p.catch === 'function') p.catch(fallbackToPoster);
-          } else {
-            video.pause();
-          }
-        }
-      },
-      { threshold: 0.25 }
-    );
-    io.observe(video);
-  }
-  initHeroVideo();
-  document.addEventListener('astro:page-load', initHeroVideo);
-</script>

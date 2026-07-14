@@ -20,3 +20,6 @@ pnpm-debug.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# raw sources (не для репо и не для деплоя)
+_raw/

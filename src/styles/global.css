@@ -33,14 +33,17 @@
   --fw-extrabold: 900;
   --fw-black: 900;
 
-  /* ---- Шкала текста (size / line-height). Разрядка = 0 везде. ---- */
-  --text-caption: 12px;   --lh-caption: 1.3;  --tr-caption: 0;
-  --text-body: 16px;      --lh-body: 1.5;     --tr-body: 0;
-  --text-lead: 20px;      --lh-lead: 1.45;    --tr-lead: 0;
-  --text-h3: 24px;        --lh-h3: 1.15;      --tr-h3: 0;
-  --text-h2: 48px;        --lh-h2: 1.05;      --tr-h2: 0;
-  --text-h1: 72px;        --lh-h1: 1.0;       --tr-h1: 0;
-  --text-display: 120px;  --lh-display: 0.95; --tr-display: 0;
+  /* ---- Шкала текста — ФЛЮИДНАЯ (приём IDS). Разрядка = 0 везде. ----
+     clamp(мин @360px, интерсепт + наклон·vw, макс @~1800px).
+     Эталон 1440px = прежним фиксированным размерам (16/20/24/48/72/120).
+     Новые размеры текста — ТОЛЬКО токенами или clamp(), фикс-px запрещён. */
+  --text-caption: clamp(11px, 10.7px + 0.09vw, 12.5px); --lh-caption: 1.3;  --tr-caption: 0;
+  --text-body: clamp(15px, 14.7px + 0.09vw, 17px);      --lh-body: 1.5;     --tr-body: 0;
+  --text-lead: clamp(17px, 16px + 0.28vw, 22px);        --lh-lead: 1.45;    --tr-lead: 0;
+  --text-h3: clamp(19px, 17.3px + 0.46vw, 26px);        --lh-h3: 1.15;      --tr-h3: 0;
+  --text-h2: clamp(32px, 26.7px + 1.48vw, 54px);        --lh-h2: 1.05;      --tr-h2: 0;
+  --text-h1: clamp(40px, 29.3px + 2.96vw, 78px);        --lh-h1: 1.0;       --tr-h1: 0;
+  --text-display: clamp(56px, 34.7px + 5.93vw, 130px);  --lh-display: 0.95; --tr-display: 0;
 
   /* ---- Спейсинг ---- */
   --spacing-4: 4px;   --spacing-8: 8px;   --spacing-12: 12px;
@@ -65,6 +68,9 @@
   /* ---- Контейнер ---- */
   --container-page: 100%;
   --container-pad: 15px;
+
+  /* ---- Мера (ширина строки наборного текста) ---- */
+  --measure: 62ch;
 }
 
 /* ============================================================
@@ -86,6 +92,15 @@
 
 body { margin: 0; }
 img, svg { display: block; max-width: 100%; }
+
+/* Ссылки: мгновенный отклик на ховер, плавное затухание при уходе (приём IDS).
+   Работает глобально на все <a>: цвет/фон/подчёркивание меняются сразу,
+   а возвращаются мягко. */
+a {
+  transition: color 0.35s ease, background-color 0.35s ease,
+              text-decoration-color 0.35s ease, opacity 0.35s ease;
+}
+a:hover { transition-duration: 0s; }
 
 /* Headings — Inter Black (900) везде */
 h1, h2, h3, h4, h5, h6 {
@@ -112,6 +127,117 @@ h1, h2, h3, h4, h5, h6 {
   line-height: var(--lh-caption);
   letter-spacing: var(--tr-caption);
   color: var(--color-ink-black);
+}
+
+/* ============================================================
+   НАБОРНЫЙ ТЕКСТ (.prose) — эталон вёрстки текста (модель IDS).
+   Внутри .prose стилизуются НАТИВНЫЕ теги — контент пишем чистым
+   HTML без классов. Размеры — от флюидных токенов, отступы
+   текст→текст — в em (едут с кеглем). Мера строки — var(--measure).
+   ============================================================ */
+.prose {
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-black);
+  max-width: var(--measure);
+}
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+
+/* Абзацы */
+.prose p { margin: 0 0 0.8em; }
+.prose .lead { font-size: var(--text-lead); line-height: var(--lh-lead); }
+/* «Громкие» абзацы (приём IDS: p.loud / p.huge) — выкрик посреди текста */
+.prose .loud { font-size: 2em; line-height: 1.2; }
+.prose .huge { font-size: 6em; line-height: 1; font-weight: var(--fw-black); }
+@media (max-width: 767px) { .prose .huge { font-size: 3em; } }
+
+/* Заголовки в потоке текста: отступ сверху отделяет смысловой блок */
+.prose h2 {
+  font-size: var(--text-h2); line-height: var(--lh-h2);
+  margin: 1.2em 0 0.35em;
+}
+.prose h3 {
+  font-size: var(--text-h3); line-height: var(--lh-h3);
+  margin: 1.4em 0 0.5em;
+}
+
+/* Выделения */
+.prose strong, .prose b { font-weight: var(--fw-black); }
+/* mark — акцентная плашка (синяя, белый текст) */
+.prose mark {
+  background: var(--color-accent);
+  color: var(--color-paper-white);
+  padding: 0 0.15em;
+}
+/* code — плашка sky-tint, шрифт тот же Inter (моно исключён) */
+.prose code {
+  background: var(--color-sky-tint);
+  color: var(--color-ink-black);
+  font-size: 0.9em;
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-card);
+}
+
+/* Ссылки в тексте — стандарт текстовой ссылки */
+.prose a {
+  color: var(--color-ink-black);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  text-decoration-skip-ink: none;
+  text-decoration-color: var(--color-blue-gray-mist);
+}
+.prose a:hover { text-decoration-color: var(--color-ink-black); }
+
+/* Списки: маркеры/номера — синие, жирные (акцентные элементы) */
+.prose ul, .prose ol { margin: 0 0 1em; padding: 0; list-style: none; }
+.prose li { position: relative; padding-left: 1.4em; margin-bottom: 0.4em; }
+.prose ul li::before {
+  content: "·";
+  position: absolute; left: 0;
+  font-weight: var(--fw-black);
+  color: var(--color-accent);
+}
+.prose ol { counter-reset: prose-item; }
+.prose ol li { counter-increment: prose-item; }
+.prose ol li::before {
+  content: counter(prose-item);
+  position: absolute; left: 0;
+  font-weight: var(--fw-black);
+  color: var(--color-accent);
+}
+
+/* Цитата — как в кейсах: крупно, Inter 900, без рамок */
+.prose blockquote {
+  font-size: var(--text-h3); line-height: var(--lh-h3);
+  font-weight: var(--fw-black);
+  margin: 1.2em 0;
+  max-width: 50ch;
+}
+
+/* Ремарка (aside) — тихая плашка сбоку от основной мысли */
+.prose aside {
+  background: var(--color-lavender-mist);
+  border-radius: var(--radius-card);
+  padding: 0.8em 1em;
+  margin: 0 0 0.8em;
+}
+
+/* Иллюстрация с подписью. Подпись — чёрная (серого не существует) */
+.prose figure { margin: 1.2em 0; }
+.prose figure img { width: 100%; border-radius: var(--radius-card); }
+.prose figcaption {
+  font-size: var(--text-caption); line-height: var(--lh-caption);
+  margin-top: 0.6em;
+  color: var(--color-ink-black);
+}
+
+/* Разделитель */
+.prose hr {
+  border: none;
+  border-top: var(--border-w) var(--border-style) var(--border-color);
+  margin: 1.6em 0;
 }
 
 /* ============================================================

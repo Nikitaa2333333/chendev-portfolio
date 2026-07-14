@@ -41,7 +41,16 @@ const social = [
   .footer__logo { font-size: var(--text-h3); font-weight: var(--fw-black); letter-spacing: 0; }
   .footer__tag { margin: var(--spacing-8) 0 0; max-width: 32ch; }
   .footer__col { display: flex; flex-direction: column; gap: var(--spacing-12); }
-  .footer__col a { color: var(--color-ink-black); text-decoration: none; font-weight: var(--fw-medium); }
-  .footer__col a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* Текстовая ссылка (приём IDS): подчёркивание всегда, светлым сплошным тоном,
+     на ховере темнеет до цвета текста. Линия непрерывная (skip-ink: none). */
+  .footer__col a {
+    color: var(--color-ink-black); font-weight: var(--fw-medium);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    text-decoration-skip-ink: none;
+    text-decoration-color: var(--color-blue-gray-mist);
+  }
+  .footer__col a:hover { text-decoration-color: var(--color-ink-black); }
   .footer__meta { display: flex; justify-content: space-between; gap: var(--spacing-16); flex-wrap: wrap; margin-top: var(--spacing-64); }
 </style>

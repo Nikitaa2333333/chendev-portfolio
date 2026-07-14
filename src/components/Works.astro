@@ -34,18 +34,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
                   <div class="glow__ring"></div>
                   <div class="glow__blob"></div>
                 </div>
-              ) : w.video ? (
-                <video
-                  class="tile__fill"
-                  data-autoplay
-                  muted
-                  loop
-                  playsinline
-                  preload="none"
-                  poster={w.poster ? withBase(w.poster) : undefined}
-                >
-                  <source src={withBase(w.video)} type="video/mp4" />
-                </video>
               ) : w.image ? (
                 <img class="tile__fill" src={withBase(w.image)} alt={w.title} loading="lazy" />
               ) : null}
@@ -94,8 +82,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     text-decoration: none;
     color: var(--color-paper-white);
     display: block;
-    /* без hover-зума / тени / подъёма — плоско и строго, как artlebedev.
-       «Живость» даёт сам медиа (gif/video), а не CSS. */
+    /* без hover-зума / тени / подъёма — плоско и строго, как artlebedev. */
   }
   .tile__fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   /* contain-режим: объект по центру, surface-цвет (фон плитки) заливает поля.
@@ -150,7 +137,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     .glow__ring, .glow__blob { animation: none; }
   }
 
-  /* градиент снизу — картинка/видео утопает в цвет плитки, подпись читается.
+  /* градиент снизу — картинка утопает в цвет плитки, подпись читается.
      Совпадает с оригиналом: прозрачно сверху → ~0.8 на 77% → solid у низа.
      (Исключение из «без прозрачностей» — градиент для читабельности.) */
   .tile__grad {
@@ -194,37 +181,3 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     .tile__title { font-size: var(--text-body); }
   }
 </style>
-
-<script>
-  // База под видео: автоплей только в зоне видимости (perf), постер — фолбэк.
-  // Уважаем prefers-reduced-motion: ничего не запускаем, остаётся постер.
-  let videoObserver: IntersectionObserver | null = null;
-  function bindVideos() {
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
-    const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]'));
-    if (!videos.length) return;
-    videoObserver?.disconnect();
-    videoObserver = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          const v = e.target as HTMLVideoElement;
-          if (e.isIntersecting) {
-            if (v.preload === 'none') v.preload = 'auto';
-            v.play().catch(() => {}); // автоплей может быть заблокирован — тихо игнорим
-          } else {
-            v.pause();
-          }
-        }
-      },
-      { threshold: 0.25 }
-    );
-    videos.forEach((v) => videoObserver!.observe(v));
-  }
-
-  function initWorks() {
-    bindVideos();
-  }
-  initWorks();
-  document.addEventListener('astro:page-load', initWorks);
-</script>
