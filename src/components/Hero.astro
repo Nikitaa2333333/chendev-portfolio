@@ -161,17 +161,22 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   }
   .hero__links a:hover { text-decoration-color: var(--color-paper-white); }
 
-  /* ── Мобилка: текст НЕ на видео (перекрывал человека в кадре), а ПОД ним —
-     отдельным блоком на белой подложке, чёрным (правило: на белом — чёрный).
-     Видео остаётся чистым блоком 16:9 сверху, градиент не нужен. ── */
+  /* ── Мобилка: текст НЕ на видео (перекрывал человека в кадре), а ПОД ним,
+     на белом, чёрным (правило: на белом — чёрный). Низ видео растворяется
+     БЕЛЫМ градиентом (как градиент на hero кейсов, но в цвет канвы), текст
+     чуть заходит на растворённую зону — стык блоков плавный, без резкой линии. ── */
   @media (max-width: 719px) {
-    .hero__fade { display: none; }
+    .hero__fade {
+      height: 45%;
+      background: linear-gradient(to bottom, transparent, var(--color-paper-white));
+    }
     .hero__body {
-      position: static;
+      position: relative; /* поверх растворённого низа видео */
+      z-index: 3;
       flex-direction: column;
       align-items: flex-start;
       gap: var(--spacing-16);
-      padding-top: var(--spacing-24);
+      margin-top: -10vw; /* заход на видео ∝ ширине экрана (высота видео тоже ∝) */
       padding-bottom: var(--spacing-8);
     }
     .hero__eyebrow,
