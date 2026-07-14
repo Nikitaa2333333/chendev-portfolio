@@ -126,8 +126,13 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     margin: 0;
     max-width: 22ch;
   }
-  /* Правая колонка: лид + строка гиперссылок-контактов. */
-  .hero__side { max-width: 46ch; }
+  /* Правая колонка: лид + строка гиперссылок-контактов.
+     Ширина — доля ряда (не ch): модуль упирается в правое поле,
+     текст и ссылки заполняют его целиком. */
+  .hero__side {
+    flex: 0 1 36%;
+    min-width: 320px;
+  }
   .hero__lead {
     font-size: var(--text-lead);
     line-height: 1.2;
@@ -164,7 +169,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       align-items: flex-start;
       gap: var(--spacing-16);
     }
-    .hero__side { max-width: 52ch; }
+    .hero__side { flex: none; width: 100%; min-width: 0; }
   }
 </style>
 
