@@ -1,0 +1,17 @@
+# Единое зеркало: https://chendev1.ru (без www), без дубля /index.html.
+# Sprinthost за прокси — протокол смотрим в X-Forwarded-Proto, не в %{HTTPS}.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # http -> https
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
+
+  # www -> без www
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301,NE]
+
+  # /index.html -> / (убрать дубль главной)
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^index\.html$ https://%{HTTP_HOST}/ [L,R=301,NE]
+</IfModule>

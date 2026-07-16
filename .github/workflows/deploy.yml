@@ -38,6 +38,3 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: /domains/chendev1.ru/public_html/
-          # Первый деплой: стирает старый React-сайт и заливает начисто.
-          # ПОСЛЕ первого зелёного деплоя эту строку УДАЛИТЬ!
-          dangerous-clean-slate: true
