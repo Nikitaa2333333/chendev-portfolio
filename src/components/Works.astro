@@ -27,6 +27,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
               data-category={w.category}
               data-size={w.size}
               data-fit={w.fit ?? 'cover'}
+              data-motion={w.motion}
               style={`--u:${units(w.size)}; --surface:${w.surface}`}
             >
               {w.variant === 'glow' ? (
@@ -35,13 +36,17 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
                   <div class="glow__blob"></div>
                 </div>
               ) : w.image ? (
-                <img class="tile__fill" src={withBase(w.image)} alt={w.title} loading="lazy" />
+                <>
+                  <img class="tile__fill" src={withBase(w.image)} alt={w.title} loading="lazy" />
+                  {w.layer && (
+                    <img class="tile__layer" src={withBase(w.layer)} alt="" aria-hidden="true" loading="lazy" />
+                  )}
+                </>
               ) : null}
 
               <div class="tile__grad"></div>
               <div class="tile__cap">
-                <p class="tile__title">{w.title}</p>
-                <span class="tile__meta">{w.client} · {w.year}</span>
+                <p class="tile__title">{w.title}: {w.client}</p>
               </div>
             </a>
           ))}
@@ -90,6 +95,56 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   .tile[data-fit="contain"] .tile__fill {
     object-fit: contain;
     padding: 10% 10% 16%;
+  }
+
+  /* ---- Float-плитка: PNG-объект парит над surface-цветом ----
+     Движение кодом (правило 7): transform-покачивание объекта + пульсирующий
+     блик за ним (блик на rgba — разрешённое исключение, как glow). */
+  .tile[data-motion="float"]::before {
+    content: "";
+    position: absolute;
+    inset: -15%;
+    background: radial-gradient(circle at 50% 42%,
+      rgba(255, 255, 255, 0.38) 0%,
+      rgba(255, 255, 255, 0.12) 38%,
+      transparent 64%);
+    filter: blur(28px);
+    animation: float-shine 6s ease-in-out infinite;
+  }
+  .tile[data-motion="float"] .tile__fill {
+    animation: float-bob 6s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes float-bob {
+    0%, 100% { transform: translateY(3%) rotate(-2deg) scale(0.97); }
+    50%      { transform: translateY(-3%) rotate(2deg) scale(1.04); }
+  }
+  @keyframes float-shine {
+    0%, 100% { opacity: 0.35; transform: scale(0.9); }
+    50%      { opacity: 1;    transform: scale(1.12); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile[data-motion="float"]::before,
+    .tile[data-motion="float"] .tile__fill { animation: none; }
+  }
+
+  /* ---- Rise-плитка: слой-объект (олени) появляется снизу вверх ----
+     Обложка двухслойная: .tile__fill — фон, .tile__layer — прозрачный WebP
+     тем же cover-кропом (файлы одного размера → совмещение 1:1).
+     Скрипт взводит плитку (.rise-armed — слой уведён под нижний край) и по IO
+     даёт .rise-in — слой выезжает. Без JS и при reduce-motion — статика. */
+  .tile__layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tile[data-motion="rise"].rise-armed .tile__layer {
+    transform: translateY(103%);
+    transition: none;
+  }
+  .tile[data-motion="rise"].rise-in .tile__layer {
+    transform: translateY(0);
+    transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile[data-motion="rise"] .tile__layer { transform: none !important; transition: none !important; }
   }
 
   /* ---- Glow-плитка: синее свечение на чистом CSS (0 КБ), явное движение ----
@@ -154,8 +209,9 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     padding: var(--spacing-16);
     display: flex; flex-direction: column; gap: 2px;
   }
+  /* Подпись — ОДНОЙ строкой, единым кеглем: «Название: описание».
+     Раздельные title/meta разных размеров отклонены — читается как единая мысль. */
   .tile__title { margin: 0; font-size: var(--text-lead); font-weight: var(--fw-medium); line-height: 1.2; }
-  .tile__meta { font-size: var(--text-caption); font-weight: var(--fw-medium); }
 
   /* ---- Адаптив ---- */
   /* Планшет: те же ряды, AR работает сам (высота тянется от ширины). */
@@ -181,3 +237,30 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     .tile__title { font-size: var(--text-body); }
   }
 </style>
+
+<script>
+  // Rise-плитки: слой выезжает снизу, когда плитка входит в вьюпорт.
+  // Взводим только при живом JS + IO + без reduce-motion — иначе статика.
+  function initRise() {
+    const tiles = document.querySelectorAll<HTMLElement>('.tile[data-motion="rise"]');
+    if (!tiles.length || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add('rise-in');
+          io.unobserve(e.target);
+        }
+      },
+      { threshold: 0.3 },
+    );
+    tiles.forEach((t) => {
+      if (t.classList.contains('rise-armed') || t.classList.contains('rise-in')) return;
+      t.classList.add('rise-armed');
+      io.observe(t);
+    });
+  }
+  initRise();
+  document.addEventListener('astro:page-load', initRise);
+</script>

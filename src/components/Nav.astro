@@ -1,9 +1,7 @@
 ---
+// «Обо мне» / «Процесс» / «Отзывы» сняты вместе с секциями на главной.
 const links = [
   { href: '#works', label: 'Работы' },
-  { href: '#about', label: 'Обо мне' },
-  { href: '#process', label: 'Процесс' },
-  { href: '#testimonials', label: 'Отзывы' },
   { href: '#contact', label: 'Контакты' },
 ];
 ---
@@ -12,7 +10,7 @@ const links = [
   <nav class="pill" aria-label="Основная навигация">
     <a href={import.meta.env.BASE_URL} class="pill__brand">
       <span class="pill__mark" aria-hidden="true"></span>
-      <span class="pill__name">[Имя]</span>
+      <span class="pill__name">Никита Чендев</span>
     </a>
 
     <ul class="pill__links">

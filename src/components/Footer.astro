@@ -2,21 +2,19 @@
 const year = new Date().getFullYear();
 const nav = [
   ['Работы', '#works'],
-  ['Обо мне', '#about'],
   ['Процесс', '#process'],
   ['Контакты', '#contact'],
 ];
 const social = [
   ['Email', 'mailto:chendev2003@gmail.com'],
   ['Telegram', 'https://t.me/'],
-  ['GitHub', 'https://github.com/'],
 ];
 ---
 
 <footer class="footer" role="contentinfo">
   <div class="container footer__inner">
     <div class="footer__brand">
-      <span class="footer__logo">[Имя]</span>
+      <span class="footer__logo">Никита Чендев</span>
       <p class="footer__tag">Дизайн и разработка цифровых продуктов.</p>
     </div>
     <nav class="footer__col" aria-label="Навигация">
@@ -29,8 +27,7 @@ const social = [
     </nav>
   </div>
   <div class="container footer__meta">
-    <span class="mono">© {year} [Имя]</span>
-    <span class="mono">Astro · Inter · JetBrains Mono</span>
+    <span class="mono">© {year} Никита Чендев</span>
   </div>
 </footer>
 

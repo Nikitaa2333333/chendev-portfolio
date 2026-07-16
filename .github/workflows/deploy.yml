@@ -1,41 +1,43 @@
-name: Deploy to GitHub Pages
+name: Deploy to Sprinthost
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 # одновременно — один деплой
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Enable Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Build Astro site
-        uses: withastro/action@v3
-        # path по умолчанию '.', package-manager определяется по lock-файлу (npm)
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      # rm lock-файла лечит конфликт Windows-lockfile с Linux-сборкой
+      - name: Install & Build
+        run: |
+          rm -rf package-lock.json node_modules
+          npm install
+          npm run build
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: /domains/chendev1.ru/public_html/
+          # Первый деплой: стирает старый React-сайт и заливает начисто.
+          # ПОСЛЕ первого зелёного деплоя эту строку УДАЛИТЬ!
+          dangerous-clean-slate: true

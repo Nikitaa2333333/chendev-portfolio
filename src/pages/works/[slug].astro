@@ -1,6 +1,5 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import Footer from '@/components/Footer.astro';
 import { works } from '@/data/works';
 import { typo } from '@/lib/typo';
 
@@ -34,14 +33,42 @@ const sections: Section[] = [
   ...(work.overview ? [{ kind: 'overview' } as Section] : []),
   ...((work.blocks ?? []).map((block) => ({ kind: 'block', block }) as Section)),
 ];
+
+// ── SEO: description из первого абзаца обзора (обрезка по слову до 160 — лимит сниппета),
+// обложка кейса — превью ссылки, хлебные крошки — понятная иерархия для поиска.
+const rawDesc = work.overview?.split('\n')[0]
+  ?? `Кейс «${work.title}» — дизайн и разработка сайта. Портфолио Никиты Чендева.`;
+const description = rawDesc.length > 160
+  ? rawDesc.slice(0, rawDesc.lastIndexOf(' ', 159)) + '…'
+  : rawDesc;
+const homeUrl = new URL(import.meta.env.BASE_URL, Astro.site).href;
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Главная', item: homeUrl },
+    { '@type': 'ListItem', position: 2, name: work.title },
+  ],
+};
 ---
 
-<Layout title={`${work.title} — кейс`}>
+<Layout
+  title={`${work.title} — кейс · Никита Чендев`}
+  description={description}
+  ogImage={work.image}
+  ogType="article"
+  schema={schema}
+>
   <main class="case" style={`--surface:${work.surface}`}>
     {/* ── Hero: статичная обложка на весь экран (видео в кейсах запрещено — CLAUDE.md) ── */}
-    <section class="hero" style={`--surface:${work.surface}`}>
+    <section class:list={['hero', { 'hero--corner': work.motion === 'rise' }]} style={`--surface:${work.surface}`}>
       {work.image ? (
-        <img class="hero__media" src={withBase(work.image)} alt={work.title} />
+        <>
+          <img class="hero__media" data-fit={work.fit ?? 'cover'} src={withBase(work.image)} alt={work.title} />
+          {work.layer && (
+            <img class="hero__media hero__layer" src={withBase(work.layer)} alt="" aria-hidden="true" />
+          )}
+        </>
       ) : work.variant === 'glow' ? (
         <div class="hero__glow" aria-hidden="true">
           <div class="glow__ring"></div>
@@ -55,7 +82,6 @@ const sections: Section[] = [
 
       <div class="hero__cap">
         <h1 class="hero__title">{typo(work.title)}</h1>
-        <p class="hero__tags mono">{work.tags.join(' · ')} · {work.year}</p>
       </div>
     </section>
 
@@ -126,8 +152,6 @@ const sections: Section[] = [
       </a>
     </nav>
   </main>
-
-  <Footer />
 </Layout>
 
 <style>
@@ -149,6 +173,41 @@ const sections: Section[] = [
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
+  }
+  /* contain-кейсы (объект-PNG, напр. Parts-Sever): объект по центру на
+     surface-цвете, снизу воздух под название. Парит — как плитка в галерее. */
+  .hero__media[data-fit="contain"] {
+    object-fit: contain;
+    padding: 10vh 8vw 18vh;
+    animation: hero-float 6s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes hero-float {
+    0%, 100% { transform: translateY(1.5%) rotate(-1.2deg) scale(0.98); }
+    50%      { transform: translateY(-1.5%) rotate(1.2deg) scale(1.02); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__media[data-fit="contain"] { animation: none; }
+  }
+  /* Угловой hero (двухслойные rise-обложки): картинку НЕ растягиваем cover'ом
+     на весь экран — апскейл выше натуральных 1480px мылит. Прижимаем к правому
+     нижнему углу не крупнее натурального размера, остальной экран заливает
+     surface (снят точно с фона обложки → стык бесшовный: верхний и левый края
+     картинки — чистый цвет фона). */
+  .hero--corner .hero__media {
+    inset: auto 0 0 auto;
+    width: auto; height: auto;
+    max-width: 100%; max-height: 100%;
+  }
+  /* Слой-объект двухслойной обложки (motion:'rise', напр. олени «Благородного
+     Севера»): лежит поверх фона тем же cover-кропом, выезжает снизу на load. */
+  .hero__layer { animation: hero-rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; will-change: transform; }
+  @keyframes hero-rise {
+    from { transform: translateY(103%); }
+    to   { transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__layer { animation: none; }
   }
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
@@ -221,8 +280,11 @@ const sections: Section[] = [
     will-change: transform;
   }
   @media (prefers-reduced-motion: reduce) { .hero__back { will-change: auto; } }
+  /* Подпись hero — только h1, прижат к низу экрана: дальше сразу идёт полоса
+     обзора того же surface-цвета (низ hero растворён градиентом в surface),
+     поэтому заголовок и текст читаются одним блоком без шва. */
   .hero__cap {
-    position: absolute; left: 15px; right: 15px; bottom: 40px;
+    position: absolute; left: 15px; right: 15px; bottom: 0;
     z-index: 2;
   }
   .hero__title {
@@ -230,17 +292,17 @@ const sections: Section[] = [
     font-size: var(--text-h1);
     line-height: var(--lh-h1);
     font-weight: var(--fw-black);
-    margin: 0 0 0.15em;
+    margin: 0;
     max-width: 18ch;
   }
-  .hero__tags { color: var(--color-paper-white); }
 
   /* ---- Секции контента (обзор + блоки) ---- */
   /* ВАЖНО: вертикальные паддинги только -top/-bottom — боковые 15px из .sec--wrap. */
   .band { padding-top: var(--spacing-48); padding-bottom: var(--spacing-48); }
   /* Обзор — полоса в цвет проекта, текст и ссылка белые (на цвете → белый).
-     Подтянут вплотную к hero (меньше top): hero + описание = единый блок. */
-  .band--tint { background: var(--surface); color: var(--color-paper-white); padding-top: var(--spacing-24); }
+     Подтянут ВПЛОТНУЮ к заголовку hero: отступ = межабзацному интервалу лида
+     (0.8em от --text-lead) — заголовок и текст читаются одним набором. */
+  .band--tint { background: var(--surface); color: var(--color-paper-white); padding-top: calc(var(--text-lead) * 0.8); }
   .band--tint .lead { color: var(--color-paper-white); }
   /* На цветной полосе ссылка белая, подчёркивание — светлым тоном, на ховере белеет. */
   .band--tint .sitelink,

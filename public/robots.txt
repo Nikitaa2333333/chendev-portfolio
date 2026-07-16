@@ -1,0 +1,6 @@
+# Портфолио Никиты Чендева. Обход разрешён всем; CSS/JS открыты (нужны ботам для рендера).
+User-agent: *
+Allow: /
+Disallow: /ds/
+
+Sitemap: https://chendev1.ru/sitemap-index.xml

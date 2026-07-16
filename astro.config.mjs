@@ -1,9 +1,13 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  site: 'https://nikitaa2333333.github.io',
-  base: '/chendev-portfolio',
+  // Боевой домен (Sprinthost, деплой по FTP из GitHub Actions — см. ASTRO_DEPLOY_PLAN.md).
+  // Сайт живёт в корне домена, base не нужен (withBase-хелперы становятся no-op).
+  site: 'https://chendev1.ru',
+  // Карта сайта для Яндекс.Вебмастера и Search Console; /ds — служебная, не индексируем.
+  integrations: [sitemap({ filter: (page) => !page.includes('/ds/') })],
   vite: {
     plugins: [tailwindcss()],
   },

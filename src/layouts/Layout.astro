@@ -9,12 +9,29 @@ import { ClientRouter } from 'astro:transitions';
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;   // путь от корня public ('/works/….webp') — превью ссылки в соцсетях/мессенджерах
+  ogType?: string;    // 'website' (дефолт) | 'article' для кейсов
+  noindex?: boolean;  // служебные страницы (/ds) — не в выдачу
+  schema?: object;    // JSON-LD микроразметка страницы (schema.org)
 }
 
 const {
-  title = 'Портфолио — скелет',
-  description = 'Структурный скелет портфолио. Контент и визуальный стиль наполняются итеративно.',
+  title = 'Никита Чендев — дизайн и разработка сайтов',
+  description = 'Делаю сайты с нуля, без шаблона и конструктора: уникальный дизайн за две недели и бесплатная гарантия один год. Портфолио — 13 живых проектов.',
+  ogImage = '/hero-poster.webp',
+  ogType = 'website',
+  noindex = false,
+  schema,
 } = Astro.props;
+
+// Абсолютные URL под GitHub Pages в подпапке (site + base из astro.config).
+const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
+const abs = (p: string) => new URL(withBase(p), Astro.site).href;
+// canonical — всегда со слэшем на конце (GH Pages отдаёт каталоги со слэшем).
+const canonical = new URL(
+  Astro.url.pathname.endsWith('/') ? Astro.url.pathname : Astro.url.pathname + '/',
+  Astro.site,
+).href;
 ---
 
 <!doctype html>
@@ -24,9 +41,26 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
 
     <title>{title}</title>
+
+    {/* Open Graph + Twitter Card — превью ссылки в Telegram/WhatsApp/соцсетях */}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Никита Чендев" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={abs(ogImage)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={abs(ogImage)} />
+
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
     <ClientRouter />
   </head>
   <body>
