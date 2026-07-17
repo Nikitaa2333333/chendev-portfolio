@@ -81,7 +81,10 @@ const schema = {
       <a class="hero__back" href={withBase('/#works')}>{typo('← к работам')}</a>
 
       <div class="hero__cap">
-        <h1 class="hero__title">{typo(work.title)}</h1>
+        {/* <wbr> после точек: «МЕНЕДЖМЕНТ.PRO» переносится по точке, а не режется краем */}
+        <h1 class="hero__title">{work.title.split(/(?<=\.)/).map((part, i, arr) => (
+          <>{typo(part)}{i < arr.length - 1 && <wbr />}</>
+        ))}</h1>
       </div>
     </section>
 
@@ -96,7 +99,7 @@ const schema = {
             {work.siteUrl && (
               <div class="sitelink-wrap">
                 <span class="sitelink__badge">Посмотреть сайт</span>
-                <a class="sitelink" href={work.siteUrl} target="_blank" rel="noopener noreferrer">{siteLabel}</a>
+                <a class="sitelink" style={`--chars:${siteLabel!.length}`} href={work.siteUrl} target="_blank" rel="noopener noreferrer">{siteLabel}</a>
               </div>
             )}
           </div>
@@ -294,6 +297,7 @@ const schema = {
     font-weight: var(--fw-black);
     margin: 0;
     max-width: 18ch;
+    overflow-wrap: anywhere; /* страховка: неразрывное слово шире экрана не распирает страницу */
   }
 
   /* ---- Секции контента (обзор + блоки) ---- */
@@ -439,9 +443,14 @@ const schema = {
     /* Ссылка на сайт — крупная на мобилке, домен в одну строку, почти от края
        до края. cqw = 1% ширины .overview (без скроллбара) → не переполняется. */
     .sitelink-wrap { margin-top: var(--spacing-32); }
+    /* Кегль от РЕАЛЬНОЙ длины домена (--chars с сервера): строка влезает
+       в контейнер. 0.61 — средняя ширина знака Inter 900 в em (13 симв. ×
+       0.61 ≈ прежний делитель 7.9). Потолок — прежний размер (короткие
+       домены не вырастают гигантами); пол — 100cqw/16: сверхдлинный домен
+       не сжимается в пыль, а переносится на вторую строку (overflow-wrap
+       anywhere из базового стиля). */
     .sitelink {
-      white-space: nowrap;
-      font-size: calc(100cqw / 7.9);
+      font-size: clamp(calc(100cqw / 16), calc(100cqw / (var(--chars, 13) * 0.61)), calc(100cqw / 7.9));
     }
   }
 </style>
