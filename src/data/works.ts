@@ -93,7 +93,8 @@ export const works: Work[] = [
   // ── ряд 2: middle + middle = 4 юнита,
 
   // ── ряд 2: m + m = 4 юнита · Парк Север + Ривер Лофт
-  { slug: 'park-sever', index: '04', title: 'Парк Север', client: 'Глэмпинг · стеклянный дом в лесу', category: 'Веб', tags: ['Отдых', 'Глэмпинг'], surface: '#29343C', size: 'middle', row: 2, image: '/works/park-sever.webp',
+  { slug: 'park-sever', index: '04', title: 'Парк Север', client: 'Глэмпинг · стеклянный дом в лесу', category: 'Веб', tags: ['Отдых', 'Глэмпинг'], surface: '#0C0602', size: 'middle', row: 2, image: '/works/park-sever-4.webp', motion: 'flick',
+    frames: ['/works/park-sever-1.webp', '/works/park-sever-2.webp', '/works/park-sever-3.webp', '/works/park-sever-4.webp'],
     siteUrl: 'https://park-sever.ru/',
     overview: 'Парк Север — уединённый отдых на 12,4 гектарах: один стеклянный дом посреди леса, панорамные виды, олени и золотистые ретриверы на территории.\nЗадача — продать не «домик в аренду», а состояние: замедлиться и остаться вдвоём наедине с природой.',
   },

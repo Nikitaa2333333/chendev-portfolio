@@ -66,6 +66,11 @@ const schema = {
           {work.layer && (
             <img class="hero__media hero__layer" src={withBase(work.layer)} alt="" aria-hidden="true" />
           )}
+          {/* flick: кадры стопкой поверх hero__media (он же последний, зажжённый
+              кадр). Здесь грузим сразу — hero виден с первого экрана. */}
+          {work.frames?.map((f, i) => (
+            <img class="hero__media hero__frame" data-f={i + 1} src={withBase(f)} alt="" aria-hidden="true" />
+          ))}
         </>
       ) : work.variant === 'glow' ? (
         <div class="hero__glow" aria-hidden="true">
@@ -241,6 +246,23 @@ const schema = {
   @media (prefers-reduced-motion: reduce) {
     .hero__layer { animation: none; }
   }
+  /* Flick-hero: тот же розжиг, что на плитке (motion:'flick', «Парк Север»).
+     Порядок строго 1→2→3→4, пауза на зажжённом, возврат к первому по кругу.
+     Кадры лежат поверх hero__media — а он и есть последний кадр, поэтому
+     в покое и при reduce-motion виден зажжённый дом. */
+  .hero__frame { opacity: 0; animation: 5s steps(1, end) infinite; }
+  .hero__frame[data-f="1"] { animation-name: flick-1; }
+  .hero__frame[data-f="2"] { animation-name: flick-2; }
+  .hero__frame[data-f="3"] { animation-name: flick-3; }
+  .hero__frame[data-f="4"] { animation-name: flick-4; }
+  @keyframes flick-1 { 0% { opacity: 1 } 10% { opacity: 0 } }
+  @keyframes flick-2 { 0% { opacity: 0 } 10% { opacity: 1 } 20% { opacity: 0 } }
+  @keyframes flick-3 { 0% { opacity: 0 } 20% { opacity: 1 } 30% { opacity: 0 } }
+  @keyframes flick-4 { 0% { opacity: 0 } 30% { opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__frame { animation: none; }
+  }
+
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
   .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }

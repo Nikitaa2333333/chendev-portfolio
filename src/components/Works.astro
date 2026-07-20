@@ -51,6 +51,20 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
                   {w.layer && (
                     <img class="tile__layer" src={withBase(w.layer)} alt="" aria-hidden="true" loading="lazy" />
                   )}
+                  {/* flick: кадры стопкой поверх image (он же последний кадр).
+                      Анимацию включает скрипт — и только после того, как ВСЕ
+                      кадры декодированы, иначе недогруженный кадр показывается
+                      пустым и последовательность читается как сбой. */}
+                  {w.frames?.map((f, i) => (
+                    <img
+                      class="tile__frame"
+                      data-f={i + 1}
+                      src={withBase(f)}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                    />
+                  ))}
                 </>
               ) : null}
 
@@ -221,6 +235,37 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     .tile[data-motion="rise"] .tile__layer { transform: none !important; transition: none !important; }
   }
 
+  /* ---- Flick-плитка: в доме последовательно зажигается свет ----
+     Кадры ночной съёмки со штатива (композиция та же, света всё больше)
+     лежат стопкой поверх .tile__fill — а .tile__fill и есть ПОСЛЕДНИЙ кадр
+     (тот же URL → браузер берёт из кэша, лишних байт нет), поэтому в покое
+     виден полностью зажжённый дом.
+     Порядок СТРОГО по возрастанию: 1→2→3→4, пауза на зажжённом, возврат
+     к первому — и по кругу. Никаких морганий с откатом назад посреди
+     последовательности: проверено — читается как подтормаживание, а не
+     как замысел. Резы жёсткие: steps(1, end) держит кадр до следующей
+     отметки, никакого кроссфейда.
+     Цикл 5s = 4 ступени по 0,5s (розжиг ~2s) + 3s дом просто горит. */
+  .tile__frame {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0;
+  }
+  .tile[data-motion="flick"].flick-on .tile__frame {
+    animation: 5s steps(1, end) infinite;
+  }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="1"] { animation-name: flick-1; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="2"] { animation-name: flick-2; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="3"] { animation-name: flick-3; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="4"] { animation-name: flick-4; }
+
+  @keyframes flick-1 { 0% { opacity: 1 } 10% { opacity: 0 } }
+  @keyframes flick-2 { 0% { opacity: 0 } 10% { opacity: 1 } 20% { opacity: 0 } }
+  @keyframes flick-3 { 0% { opacity: 0 } 20% { opacity: 1 } 30% { opacity: 0 } }
+  @keyframes flick-4 { 0% { opacity: 0 } 30% { opacity: 1 } }
+
+  /* Без JS и при reduce-motion класс .flick-on не ставится → кадры погашены,
+     снизу статичный зажжённый дом. Отключать отдельно ничего не нужно. */
+
   /* ---- Glow-плитка: синее свечение на чистом CSS (0 КБ), явное движение ----
      Разрешённое исключение из «без прозрачностей»: свечение/стекло на rgba —
      осознанно, ради эффекта. Всё на GPU, резко на любом экране, без видео. */
@@ -335,6 +380,38 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       io.observe(t);
     });
   }
+  // Flick-плитки: розжиг идёт, пока плитка в кадре, и глушится за экраном.
+  // ВАЖНО: анимацию включаем только после decode() ВСЕХ кадров. Кадры висят
+  // на loading="lazy", и без этого ожидания недогруженный кадр показывался
+  // пустым — сквозь него просвечивал зажжённый дом, и последовательность
+  // читалась как случайная. Ошибка декодирования → просто не анимируем,
+  // остаётся статичная обложка.
+  function initFlick() {
+    const tiles = document.querySelectorAll<HTMLElement>('.tile[data-motion="flick"]');
+    if (!tiles.length || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const tile = e.target as HTMLElement;
+          if (!e.isIntersecting) { tile.classList.remove('flick-on'); continue; }
+          const frames = [...tile.querySelectorAll<HTMLImageElement>('.tile__frame')];
+          frames.forEach((f) => { f.loading = 'eager'; });
+          Promise.all(frames.map((f) => f.decode().catch(() => null)))
+            .then((r) => {
+              if (r.every((x) => x !== null)) tile.classList.add('flick-on');
+            });
+        }
+      },
+      { threshold: 0.25 },
+    );
+    tiles.forEach((t) => io.observe(t));
+  }
+
   initRise();
-  document.addEventListener('astro:page-load', initRise);
+  initFlick();
+  document.addEventListener('astro:page-load', () => {
+    initRise();
+    initFlick();
+  });
 </script>
