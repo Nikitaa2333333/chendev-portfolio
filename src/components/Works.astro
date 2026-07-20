@@ -41,6 +41,18 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
                   {w.layer && (
                     <img class="tile__layer" src={withBase(w.layer)} alt="" aria-hidden="true" loading="lazy" />
                   )}
+                  {/* flick: кадры лежат стопкой поверх image (он же последний кадр
+                      и статичный фолбэк). Видимость переключает CSS жёсткими резами. */}
+                  {w.frames?.map((f, i) => (
+                    <img
+                      class="tile__frame"
+                      data-f={i + 1}
+                      src={withBase(f)}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                    />
+                  ))}
                 </>
               ) : null}
 
@@ -146,6 +158,35 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   @media (prefers-reduced-motion: reduce) {
     .tile[data-motion="rise"] .tile__layer { transform: none !important; transition: none !important; }
   }
+
+  /* ---- Flick-плитка: домик зажигается покадрово ----
+     4 кадра ночной съёмки со штатива (свет нарастает), сложены стопкой поверх
+     .tile__fill — а .tile__fill и есть ПОСЛЕДНИЙ кадр (тот же URL → браузер
+     берёт из кэша, лишних байт нет). Поэтому когда все кадры погашены, снизу
+     виден полностью зажжённый дом — это и есть состояние покоя.
+     Переключение ЖЁСТКОЕ: steps(1, end) держит значение до следующего кадра,
+     никаких плавных переходов — щелчок выключателя, а не кроссфейд.
+     Ритм — розжиг с морганием (1→2→1→3→4→3→4), потом долгая пауза
+     на зажжённом кадре: 6s цикла, из них ~4,5s дом просто горит. */
+  .tile__frame {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0;
+  }
+  .tile[data-motion="flick"].flick-on .tile__frame {
+    animation: 6s steps(1, end) infinite;
+  }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="1"] { animation-name: flick-1; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="2"] { animation-name: flick-2; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="3"] { animation-name: flick-3; }
+  .tile[data-motion="flick"].flick-on .tile__frame[data-f="4"] { animation-name: flick-4; }
+
+  @keyframes flick-1 { 0% { opacity: 1 } 8% { opacity: 0 } 12% { opacity: 1 } 15% { opacity: 0 } }
+  @keyframes flick-2 { 0% { opacity: 0 } 8% { opacity: 1 } 12% { opacity: 0 } }
+  @keyframes flick-3 { 0% { opacity: 0 } 15% { opacity: 1 } 19% { opacity: 0 } 23% { opacity: 1 } 26% { opacity: 0 } }
+  @keyframes flick-4 { 0% { opacity: 0 } 19% { opacity: 1 } 23% { opacity: 0 } 26% { opacity: 1 } }
+
+  /* Без JS и при reduce-motion класс .flick-on не ставится → кадры погашены,
+     снизу статичный зажжённый дом. Отключать отдельно ничего не нужно. */
 
   /* ---- Glow-плитка: синее свечение на чистом CSS (0 КБ), явное движение ----
      Разрешённое исключение из «без прозрачностей»: свечение/стекло на rgba —
@@ -261,6 +302,25 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       io.observe(t);
     });
   }
+  // Flick-плитки: розжиг стартует, когда плитка входит в кадр, и глушится,
+  // когда уходит — анимация не крутится вхолостую за пределами экрана.
+  function initFlick() {
+    const tiles = document.querySelectorAll<HTMLElement>('.tile[data-motion="flick"]');
+    if (!tiles.length || !('IntersectionObserver' in window)) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) e.target.classList.toggle('flick-on', e.isIntersecting);
+      },
+      { threshold: 0.25 },
+    );
+    tiles.forEach((t) => io.observe(t));
+  }
+
   initRise();
-  document.addEventListener('astro:page-load', initRise);
+  initFlick();
+  document.addEventListener('astro:page-load', () => {
+    initRise();
+    initFlick();
+  });
 </script>

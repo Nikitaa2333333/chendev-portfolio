@@ -11,19 +11,9 @@ const { work } = Astro.props;
 
 // Чистый домен для подписи ссылки (https://noble-farm.ru/ → noble-farm.ru)
 const siteLabel = work.siteUrl?.replace(/^https?:\/\//, '').replace(/\/$/, '');
-const idx = works.findIndex((w) => w.slug === work.slug);
-const prev = works[(idx - 1 + works.length) % works.length];
-const next = works[(idx + 1) % works.length];
 
 // База под GitHub Pages в подпапке: пути в works.ts начинаются с '/'.
 const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
-
-// Контакты автора (CTA). Telegram пока заглушка — заменим на реальную ссылку.
-const contacts = [
-  { label: 'Telegram', href: '#' },
-  { label: 'chendev2003@gmail.com', href: 'mailto:chendev2003@gmail.com' },
-  { label: '+7 953 121 74 77', href: 'tel:+79531217477' },
-];
 
 // Единый список контент-секций (обзор + блоки), рендер по порядку.
 type Section =
@@ -60,14 +50,40 @@ const schema = {
   schema={schema}
 >
   <main class="case" style={`--surface:${work.surface}`}>
-    {/* ── Hero: статичная обложка на весь экран (видео в кейсах запрещено — CLAUDE.md) ── */}
+    {/* ── Hero на весь экран. По умолчанию статика (правило 7); видео — только
+           у кейсов с heroVideo, единичное исключение, сейчас «Ривер Лофт». ── */}
     <section class:list={['hero', { 'hero--corner': work.motion === 'rise' }]} style={`--surface:${work.surface}`}>
-      {work.image ? (
+      {work.heroVideo ? (
+        /* Единичное исключение из правила 7 (см. works.ts) — кейс «Ривер Лофт».
+           Постер лежит ПОД видео и остаётся, если автоплей заблокирован. */
+        <>
+          <img class="hero__media" src={withBase(work.heroPoster ?? work.image!)} alt={work.title} />
+          <video
+            class="hero__media hero__video"
+            data-case-video
+            muted
+            loop
+            playsinline
+            webkit-playsinline
+            autoplay
+            preload="auto"
+            disablepictureinpicture
+            poster={withBase(work.heroPoster ?? work.image!)}
+          >
+            <source src={withBase(work.heroVideo)} type="video/mp4" />
+          </video>
+        </>
+      ) : work.image ? (
         <>
           <img class="hero__media" data-fit={work.fit ?? 'cover'} src={withBase(work.image)} alt={work.title} />
           {work.layer && (
             <img class="hero__media hero__layer" src={withBase(work.layer)} alt="" aria-hidden="true" />
           )}
+          {/* flick: кадры стопкой поверх hero__media (он же последний, зажжённый
+              кадр) — розжиг идёт сразу на загрузке, на весь экран. */}
+          {work.frames?.map((f, i) => (
+            <img class="hero__media hero__frame" data-f={i + 1} src={withBase(f)} alt="" aria-hidden="true" />
+          ))}
         </>
       ) : work.variant === 'glow' ? (
         <div class="hero__glow" aria-hidden="true">
@@ -129,31 +145,6 @@ const schema = {
         )}
       </section>
     ))}
-
-    {/* ── CTA: написать автору ── */}
-    <section class="cta">
-      <div class="cta__inner sec--wrap">
-        <h2 class="cta__title">{typo('Хотите такой же сайт?')}</h2>
-        <p class="cta__lead">{typo('Напишите Никите — обсудим проект и соберём сайт, который работает на вас.')}</p>
-        <div class="cta__links">
-          {contacts.map((c) => (
-            <a class="cta__link" href={c.href}>{c.label}</a>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    {/* ── Навигация по кейсам ── */}
-    <nav class="case-nav sec--wrap" aria-label="Другие работы">
-      <a class="case-nav__item" href={withBase(`/works/${prev.slug}`)}>
-        <span class="mono">← предыдущая</span>
-        <span class="case-nav__title">{typo(prev.title)}</span>
-      </a>
-      <a class="case-nav__item case-nav__item--next" href={withBase(`/works/${next.slug}`)}>
-        <span class="mono">следующая →</span>
-        <span class="case-nav__title">{typo(next.title)}</span>
-      </a>
-    </nav>
   </main>
 </Layout>
 
@@ -177,6 +168,12 @@ const schema = {
     width: 100%; height: 100%;
     object-fit: cover;
   }
+  /* Видео-hero (единичное исключение, «Ривер Лофт»): видео лежит ПОВЕРХ
+     постера. Если автоплей заблокирован — скрипт ставит [hidden], и остаётся
+     постер, а не мёртвая системная кнопка play. */
+  .hero__video { z-index: 1; }
+  .hero__video[hidden] { display: none; }
+
   /* contain-кейсы (объект-PNG, напр. Parts-Sever): объект по центру на
      surface-цвете, снизу воздух под название. Парит — как плитка в галерее. */
   .hero__media[data-fit="contain"] {
@@ -212,6 +209,23 @@ const schema = {
   @media (prefers-reduced-motion: reduce) {
     .hero__layer { animation: none; }
   }
+  /* Flick-hero: тот же покадровый розжиг, что на плитке (motion:'flick',
+     «Парк Север»). Кадры лежат стопкой поверх hero__media — а он и есть
+     последний, зажжённый кадр, поэтому в покое виден именно он.
+     steps(1, end) = жёсткие резы без кроссфейда. */
+  .hero__frame { opacity: 0; animation: 6s steps(1, end) infinite; }
+  .hero__frame[data-f="1"] { animation-name: flick-1; }
+  .hero__frame[data-f="2"] { animation-name: flick-2; }
+  .hero__frame[data-f="3"] { animation-name: flick-3; }
+  .hero__frame[data-f="4"] { animation-name: flick-4; }
+  @keyframes flick-1 { 0% { opacity: 1 } 8% { opacity: 0 } 12% { opacity: 1 } 15% { opacity: 0 } }
+  @keyframes flick-2 { 0% { opacity: 0 } 8% { opacity: 1 } 12% { opacity: 0 } }
+  @keyframes flick-3 { 0% { opacity: 0 } 15% { opacity: 1 } 19% { opacity: 0 } 23% { opacity: 1 } 26% { opacity: 0 } }
+  @keyframes flick-4 { 0% { opacity: 0 } 19% { opacity: 1 } 23% { opacity: 0 } 26% { opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__frame { animation: none; }
+  }
+
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
   .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }
@@ -381,61 +395,6 @@ const schema = {
   }
   .quote__author { margin: var(--spacing-12) 0 0; }
 
-  /* ---- CTA: синяя секция, белый текст ---- */
-  .cta {
-    background: var(--color-accent);
-    margin-top: var(--spacing-48);
-  }
-  .cta__inner { padding-top: var(--spacing-80); padding-bottom: var(--spacing-80); }
-  .cta__title {
-    font-size: var(--text-h1);
-    line-height: var(--lh-h1);
-    font-weight: var(--fw-black);
-    color: var(--color-paper-white);
-    margin: 0 0 0.25em;
-    max-width: 16ch;
-  }
-  .cta__lead {
-    font-size: var(--text-lead);
-    line-height: var(--lh-lead);
-    color: var(--color-paper-white);
-    max-width: 48ch;
-    margin: 0 0 var(--spacing-32);
-  }
-  .cta__links { display: flex; flex-wrap: wrap; gap: var(--spacing-12); }
-  .cta__link {
-    display: inline-flex; align-items: center;
-    background: var(--color-paper-white);
-    color: var(--color-ink-black);
-    font-weight: var(--fw-medium);
-    text-decoration: none;
-    border-radius: var(--radius-pill);
-    padding: 12px 24px;
-  }
-  .cta__link:hover { background: var(--color-paper-white); transform: translateY(-1px); }
-
-  /* ---- Навигация по кейсам ---- */
-  .case-nav {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--spacing-8);
-    padding-top: var(--spacing-48);
-    padding-bottom: var(--spacing-96);
-  }
-  @media (min-width: 720px) { .case-nav { grid-template-columns: 1fr 1fr; } }
-  .case-nav__item {
-    display: flex; flex-direction: column; gap: var(--spacing-4);
-    border: var(--border-w) var(--border-style) var(--border-color);
-    border-radius: var(--radius-card);
-    padding: var(--spacing-24);
-    text-decoration: none;
-    color: var(--color-ink-black);
-    background: var(--color-paper-white);
-  }
-  .case-nav__item--next { text-align: right; align-items: flex-end; }
-  .case-nav__item:hover { background: var(--color-faint-slate); }
-  .case-nav__title { font-size: var(--text-h3); font-weight: var(--fw-black); }
-
   /* ---- Адаптив ----
      Ручных мобильных кеглей больше нет — флюидные токены сами
      ужимают h1/h2 на узких экранах (clamp в global.css). */
@@ -454,3 +413,35 @@ const schema = {
     }
   }
 </style>
+
+<script>
+  // Видео-hero кейса (единичное исключение — «Ривер Лофт», см. works.ts).
+  // Максимальная страховка воспроизведения:
+  //   1. играет только в зоне видимости — не жрёт батарею за экраном;
+  //   2. play() возвращает промис — ловим отказ (iOS Low Power Mode блокирует
+  //      автоплей даже у muted) и прячем видео → остаётся постер, а не
+  //      мёртвая системная кнопка play поверх обложки;
+  //   3. prefers-reduced-motion → сразу постер, видео не запускаем;
+  //   4. подстраховка на 'error' — битый/недокачанный файл тоже уводим в постер.
+  function initCaseVideo() {
+    const v = document.querySelector<HTMLVideoElement>('[data-case-video]');
+    if (!v) return;
+    const fallbackToPoster = () => { v.hidden = true; v.pause(); };
+    v.addEventListener('error', fallbackToPoster);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { fallbackToPoster(); return; }
+    if (!('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          const p = v.play();
+          if (p && typeof p.catch === 'function') p.catch(fallbackToPoster);
+        } else {
+          v.pause();
+        }
+      }
+    }, { threshold: 0.15 });
+    io.observe(v);
+  }
+  initCaseVideo();
+  document.addEventListener('astro:page-load', initCaseVideo);
+</script>
