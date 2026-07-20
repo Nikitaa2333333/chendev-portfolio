@@ -49,7 +49,7 @@ const schema = {
   ogType="article"
   schema={schema}
 >
-  <main class="case" style={`--surface:${work.surface}`}>
+  <main class="case" style={`--surface:${work.surface}; --band:${work.bandColor ?? work.surface}`}>
     {/* ── Hero: статичная обложка на весь экран (видео в кейсах запрещено — CLAUDE.md) ── */}
     <section class:list={['hero', { 'hero--corner': work.motion === 'rise', 'hero--surf': work.motion === 'surf' }]} style={`--surface:${work.surface}`}>
       {/* surf: те же волны, что на плитке, во весь экран (см. Works.astro) */}
@@ -335,7 +335,7 @@ const schema = {
   /* Обзор — полоса в цвет проекта, текст и ссылка белые (на цвете → белый).
      Подтянут ВПЛОТНУЮ к заголовку hero: отступ = межабзацному интервалу лида
      (0.8em от --text-lead) — заголовок и текст читаются одним набором. */
-  .band--tint { background: var(--surface); color: var(--color-paper-white); padding-top: calc(var(--text-lead) * 0.8); }
+  .band--tint { background: var(--band, var(--surface)); color: var(--color-paper-white); padding-top: calc(var(--text-lead) * 0.8); }
   .band--tint .lead { color: var(--color-paper-white); }
   /* На цветной полосе ссылка белая, подчёркивание — светлым тоном, на ховере белеет. */
   .band--tint .sitelink,
