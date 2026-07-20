@@ -50,40 +50,22 @@ const schema = {
   schema={schema}
 >
   <main class="case" style={`--surface:${work.surface}`}>
-    {/* ── Hero на весь экран. По умолчанию статика (правило 7); видео — только
-           у кейсов с heroVideo, единичное исключение, сейчас «Ривер Лофт». ── */}
-    <section class:list={['hero', { 'hero--corner': work.motion === 'rise' }]} style={`--surface:${work.surface}`}>
-      {work.heroVideo ? (
-        /* Единичное исключение из правила 7 (см. works.ts) — кейс «Ривер Лофт».
-           Постер лежит ПОД видео и остаётся, если автоплей заблокирован. */
-        <>
-          <img class="hero__media" src={withBase(work.heroPoster ?? work.image!)} alt={work.title} />
-          <video
-            class="hero__media hero__video"
-            data-case-video
-            muted
-            loop
-            playsinline
-            webkit-playsinline
-            autoplay
-            preload="auto"
-            disablepictureinpicture
-            poster={withBase(work.heroPoster ?? work.image!)}
-          >
-            <source src={withBase(work.heroVideo)} type="video/mp4" />
-          </video>
-        </>
-      ) : work.image ? (
+    {/* ── Hero: статичная обложка на весь экран (видео в кейсах запрещено — CLAUDE.md) ── */}
+    <section class:list={['hero', { 'hero--corner': work.motion === 'rise', 'hero--surf': work.motion === 'surf' }]} style={`--surface:${work.surface}`}>
+      {/* surf: те же волны, что на плитке, во весь экран (см. Works.astro) */}
+      {work.motion === 'surf' && (
+        <div class="surf" aria-hidden="true">
+          <span class="surf__wave" data-w="1"></span>
+          <span class="surf__wave" data-w="2"></span>
+          <span class="surf__wave" data-w="3"></span>
+        </div>
+      )}
+      {work.image ? (
         <>
           <img class="hero__media" data-fit={work.fit ?? 'cover'} src={withBase(work.image)} alt={work.title} />
           {work.layer && (
             <img class="hero__media hero__layer" src={withBase(work.layer)} alt="" aria-hidden="true" />
           )}
-          {/* flick: кадры стопкой поверх hero__media (он же последний, зажжённый
-              кадр) — розжиг идёт сразу на загрузке, на весь экран. */}
-          {work.frames?.map((f, i) => (
-            <img class="hero__media hero__frame" data-f={i + 1} src={withBase(f)} alt="" aria-hidden="true" />
-          ))}
         </>
       ) : work.variant === 'glow' ? (
         <div class="hero__glow" aria-hidden="true">
@@ -168,12 +150,6 @@ const schema = {
     width: 100%; height: 100%;
     object-fit: cover;
   }
-  /* Видео-hero (единичное исключение, «Ривер Лофт»): видео лежит ПОВЕРХ
-     постера. Если автоплей заблокирован — скрипт ставит [hidden], и остаётся
-     постер, а не мёртвая системная кнопка play. */
-  .hero__video { z-index: 1; }
-  .hero__video[hidden] { display: none; }
-
   /* contain-кейсы (объект-PNG, напр. Parts-Sever): объект по центру на
      surface-цвете, снизу воздух под название. Парит — как плитка в галерее. */
   .hero__media[data-fit="contain"] {
@@ -189,6 +165,62 @@ const schema = {
   @media (prefers-reduced-motion: reduce) {
     .hero__media[data-fit="contain"] { animation: none; }
   }
+  /* ---- Surf-hero: объект катается по волнам (зеркало плитки в Works.astro) ----
+     Волны — CSS + inline-SVG, сплошные тона, 0 КБ. Нижний тёмно-синий слой
+     держит белый h1: surface у кейса светло-жёлтый, градиент здесь не работает. */
+  .surf { position: absolute; inset: 0; overflow: hidden; }
+  .surf__wave {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: var(--h);
+    background: var(--c);
+  }
+  .surf__wave::before {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 100%;
+    height: var(--crest);
+    background-repeat: repeat-x;
+    background-size: 320px 100%;
+    animation: surf-run var(--sp) linear infinite;
+    will-change: background-position;
+  }
+  /* Ступени высот: разрыв между слоями ≥ гребня нижнего (иначе гребень прячется) */
+  .surf__wave[data-w="1"] { --h: 30%; --crest: 8%; --sp: 11s;  --c: var(--color-sky-tint); }
+  .surf__wave[data-w="2"] { --h: 20%; --crest: 7%; --sp: 8s;   --c: var(--color-accent); }
+  .surf__wave[data-w="3"] { --h: 12%; --crest: 6%; --sp: 5.5s; --c: var(--color-accent-900); }
+  .surf__wave[data-w="1"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40' preserveAspectRatio='none'%3E%3Cpath d='M0,20 q25,-18 50,0 t50,0 t50,0 t50,0 V40 H0 Z' fill='%23c4edff'/%3E%3C/svg%3E");
+  }
+  .surf__wave[data-w="2"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40' preserveAspectRatio='none'%3E%3Cpath d='M0,20 q25,-18 50,0 t50,0 t50,0 t50,0 V40 H0 Z' fill='%233B73B9'/%3E%3C/svg%3E");
+    animation-direction: reverse;
+  }
+  .surf__wave[data-w="3"]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 40' preserveAspectRatio='none'%3E%3Cpath d='M0,20 q25,-18 50,0 t50,0 t50,0 t50,0 V40 H0 Z' fill='%231E3A5D'/%3E%3C/svg%3E");
+  }
+  @keyframes surf-run {
+    from { background-position-x: 0; }
+    to   { background-position-x: 320px; }
+  }
+  .hero--surf .hero__media {
+    object-fit: contain;
+    padding: 10vh 10vw 22vh;
+    transform-origin: 50% 85%;
+    animation: surf-ride 3.6s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes surf-ride {
+    0%   { transform: translate(-4%, 2%)  rotate(-9deg); }
+    25%  { transform: translate(-1%, -3%) rotate(3deg); }
+    50%  { transform: translate(4%, 2%)   rotate(10deg); }
+    75%  { transform: translate(1%, -4%)  rotate(-2deg); }
+    100% { transform: translate(-4%, 2%)  rotate(-9deg); }
+  }
+  .hero--surf .hero__grad { display: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .surf__wave::before,
+    .hero--surf .hero__media { animation: none; }
+  }
+
   /* Угловой hero (двухслойные rise-обложки): картинку НЕ растягиваем cover'ом
      на весь экран — апскейл выше натуральных 1480px мылит. Прижимаем к правому
      нижнему углу не крупнее натурального размера, остальной экран заливает
@@ -209,23 +241,6 @@ const schema = {
   @media (prefers-reduced-motion: reduce) {
     .hero__layer { animation: none; }
   }
-  /* Flick-hero: тот же покадровый розжиг, что на плитке (motion:'flick',
-     «Парк Север»). Кадры лежат стопкой поверх hero__media — а он и есть
-     последний, зажжённый кадр, поэтому в покое виден именно он.
-     steps(1, end) = жёсткие резы без кроссфейда. */
-  .hero__frame { opacity: 0; animation: 6s steps(1, end) infinite; }
-  .hero__frame[data-f="1"] { animation-name: flick-1; }
-  .hero__frame[data-f="2"] { animation-name: flick-2; }
-  .hero__frame[data-f="3"] { animation-name: flick-3; }
-  .hero__frame[data-f="4"] { animation-name: flick-4; }
-  @keyframes flick-1 { 0% { opacity: 1 } 8% { opacity: 0 } 12% { opacity: 1 } 15% { opacity: 0 } }
-  @keyframes flick-2 { 0% { opacity: 0 } 8% { opacity: 1 } 12% { opacity: 0 } }
-  @keyframes flick-3 { 0% { opacity: 0 } 15% { opacity: 1 } 19% { opacity: 0 } 23% { opacity: 1 } 26% { opacity: 0 } }
-  @keyframes flick-4 { 0% { opacity: 0 } 19% { opacity: 1 } 23% { opacity: 0 } 26% { opacity: 1 } }
-  @media (prefers-reduced-motion: reduce) {
-    .hero__frame { animation: none; }
-  }
-
   /* Glow-hero: продолжение анимации с плитки галереи (синее свечение на CSS).
      Крупнее — на весь экран кейса. Разрешённое исключение из «без прозрачностей». */
   .hero__glow { position: absolute; inset: 0; background: #0a0b0d; overflow: hidden; }
@@ -414,34 +429,3 @@ const schema = {
   }
 </style>
 
-<script>
-  // Видео-hero кейса (единичное исключение — «Ривер Лофт», см. works.ts).
-  // Максимальная страховка воспроизведения:
-  //   1. играет только в зоне видимости — не жрёт батарею за экраном;
-  //   2. play() возвращает промис — ловим отказ (iOS Low Power Mode блокирует
-  //      автоплей даже у muted) и прячем видео → остаётся постер, а не
-  //      мёртвая системная кнопка play поверх обложки;
-  //   3. prefers-reduced-motion → сразу постер, видео не запускаем;
-  //   4. подстраховка на 'error' — битый/недокачанный файл тоже уводим в постер.
-  function initCaseVideo() {
-    const v = document.querySelector<HTMLVideoElement>('[data-case-video]');
-    if (!v) return;
-    const fallbackToPoster = () => { v.hidden = true; v.pause(); };
-    v.addEventListener('error', fallbackToPoster);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { fallbackToPoster(); return; }
-    if (!('IntersectionObserver' in window)) return;
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          const p = v.play();
-          if (p && typeof p.catch === 'function') p.catch(fallbackToPoster);
-        } else {
-          v.pause();
-        }
-      }
-    }, { threshold: 0.15 });
-    io.observe(v);
-  }
-  initCaseVideo();
-  document.addEventListener('astro:page-load', initCaseVideo);
-</script>
