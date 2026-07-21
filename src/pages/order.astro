@@ -21,10 +21,6 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
         <p class="order__lead">
           {typo('Отвечу в течение дня и бесплатно сделаю первую концепцию вашего сайта.')}
         </p>
-        <p class="order__note">
-          {typo('Все поля необязательные — заполняйте как удобно. Оставьте телефон или ссылку на соцсеть, чтобы я мог ответить. Свяжусь в любом случае.')}
-        </p>
-
         <form class="form" action={withBase('/send.php')} method="post" data-form novalidate>
           <label class="field">
             <span class="field__label">{typo('Как вас зовут')}</span>
@@ -47,7 +43,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
           </label>
 
           <label class="field">
-            <span class="field__label">{typo('Ссылка на соцсеть')}</span>
+            <span class="field__label">{typo('Ссылка на любую соцсеть')}</span>
             <input
               class="field__input"
               type="text"
@@ -76,6 +72,11 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
           </div>
 
           <button class="form__submit" type="submit" data-submit>{typo('Отправить заявку')}</button>
+          {/* Пометка живёт ПОД кнопкой — не задерживает на входе в форму,
+              а объясняет уже после того, как человек увидел поля. */}
+          <p class="order__note">
+            {typo('Все поля необязательные — заполняйте как удобно. Оставьте телефон или ссылку на соцсеть, чтобы я мог ответить.')}
+          </p>
           <p class="form__note" data-form-error hidden></p>
         </form>
       </div>
@@ -124,18 +125,22 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     font-size: var(--text-lead);
     color: var(--color-paper-white);
   }
+  /* Пометка под кнопкой: отбита своим межстрочным интервалом, не «висит». */
   .order__note {
     margin-top: calc(var(--text-body) * 0.8);
     font-size: var(--text-body);
     color: var(--color-paper-white);
   }
 
+  /* Поля стоят плотно: это одна анкета, а не набор отдельных блоков. */
   .form {
     margin-top: var(--spacing-32);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-24);
+    gap: var(--spacing-12);
   }
+  /* Кнопку от последнего поля отбиваем сильнее — она другой шаг сценария. */
+  .form__submit { margin-top: var(--spacing-12); }
   .field { display: block; }
   .field__label {
     display: block;
@@ -176,20 +181,22 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   }
   .field__error[data-shown] { display: block; }
 
-  /* Кнопка — белый прямоугольник, чёрный текст. Тот же радиус, что у полей. */
+  /* Кнопка — чёрный прямоугольник: на синем это самый контрастный тон,
+     сильнее белого (белым здесь набраны подписи и поля, кнопка не должна
+     теряться среди них). Радиус тот же, что у полей. */
   .form__submit {
     align-self: flex-start;
     padding: 16px 32px;
     font-family: var(--font-sans);
     font-size: var(--text-lead);
     font-weight: var(--fw-medium);
-    color: var(--color-ink-black);
-    background: var(--color-paper-white);
-    border: var(--border-w) solid var(--color-paper-white);
+    color: var(--color-paper-white);
+    background: var(--color-ink-black);
+    border: var(--border-w) solid var(--color-ink-black);
     border-radius: var(--radius-card);
     cursor: pointer;
   }
-  .form__submit:hover { background: var(--color-sky-tint); border-color: var(--color-sky-tint); }
+  .form__submit:hover { background: var(--color-accent-900); border-color: var(--color-accent-900); }
   .form__submit[disabled] { cursor: progress; }
 
   .form__note {
@@ -269,9 +276,17 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       clearErrors();
 
       const data = new FormData(form);
+      const name = String(data.get('name') ?? '').trim();
       const phone = String(data.get('phone') ?? '').trim();
       const social = String(data.get('social') ?? '').trim();
+      const about = String(data.get('about') ?? '').trim();
       const local: Record<string, string> = {};
+
+      // Имя — буквы, пробел, дефис, апостроф. Цифры и «!!!???» отсекаем:
+      // это либо опечатка, либо мусор от бота.
+      if (name && !/^[a-zA-Zа-яА-ЯёЁ][a-zA-Zа-яА-ЯёЁ\s'-]*$/.test(name)) {
+        local.name = 'Только буквы — без цифр и символов';
+      }
 
       // Поля по отдельности необязательны, но ответить как-то надо:
       // просим либо телефон, либо соцсеть.
@@ -281,6 +296,17 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
         const normalized = normalizeRu(phone);
         if (!normalized) local.phone = 'Похоже, номер неполный. Российский формат: +7 900 000 00 00';
         else data.set('phone', normalized);
+      }
+
+      // Соцсеть должна быть похожа на адрес или ник: набор букв/цифр от 3 знаков.
+      // Иначе «!!!» прошло бы как контакт, а связаться было бы нельзя.
+      if (social && !/[a-zA-Zа-яА-Я0-9]{3}/.test(social)) {
+        local.social = 'Похоже на опечатку. Например: @username или t.me/username';
+      }
+
+      // Род занятий — просто текст, но не сплошные символы.
+      if (about && !/[a-zA-Zа-яА-ЯёЁ0-9]{2}/.test(about)) {
+        local.about = 'Пара слов о деле — например, «кофейня»';
       }
 
       if (Object.keys(local).length) { showErrors(local); return; }

@@ -60,6 +60,18 @@ if ($phone === '' && $social === '') {
     }
 }
 
+// Имя — буквы, пробел, дефис, апостроф. Цифры и «!!!???» отсекаем.
+if ($name !== '' && !preg_match('/^[\p{L}][\p{L}\s\'-]*$/u', $name)) {
+    $errors['name'] = 'Только буквы — без цифр и символов';
+}
+// Соцсеть и род занятий должны содержать осмысленный текст, а не одни символы.
+if ($social !== '' && !preg_match('/[\p{L}\p{N}]{3}/u', $social)) {
+    $errors['social'] = 'Похоже на опечатку. Например: @username или t.me/username';
+}
+if ($about !== '' && !preg_match('/[\p{L}\p{N}]{2}/u', $about)) {
+    $errors['about'] = 'Пара слов о деле — например, «кофейня»';
+}
+
 if (mb_strlen($name) > 100)    { $errors['name']   = 'Слишком длинно'; }
 if (mb_strlen($social) > 200)  { $errors['social'] = 'Слишком длинно'; }
 if (mb_strlen($about) > 1000)  { $errors['about']  = 'Слишком длинно'; }
