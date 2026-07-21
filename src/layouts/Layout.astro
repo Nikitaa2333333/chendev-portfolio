@@ -86,6 +86,12 @@ const canonical = new URL(
   </head>
   <body>
     <slot />
+
+    {/* Кнопка заказа — на всех страницах, кроме самой формы (там она бы вела
+        на страницу, где человек уже стоит). Ведёт на /order/, не модалка. */}
+    {!Astro.url.pathname.startsWith(withBase('/order')) && (
+      <a class="order-cta" href={withBase('/order/')}>Заказать сайт</a>
+    )}
   </body>
 </html>
 
@@ -119,3 +125,27 @@ const canonical = new URL(
   fixTypography();
   document.addEventListener('astro:page-load', () => fixTypography());
 </script>
+
+<style>
+  /* ── Плавающая кнопка «Заказать сайт» ──
+     Fixed снизу справа, живёт на всех страницах и не уезжает при скролле.
+     Сплошной акцент без теней и прозрачностей (правило 2). Кнопка «← к работам»
+     на кейсах прижата к ЛЕВОМУ верхнему углу — не пересекаются. */
+  .order-cta {
+    position: fixed;
+    right: 15px;
+    /* safe-area — чтобы на айфонах не залезала под системную полоску */
+    bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+    z-index: 60;
+    padding: 14px 26px;
+    font-size: var(--text-body);
+    font-weight: var(--fw-medium);
+    line-height: 1;
+    color: var(--color-paper-white);
+    background: var(--color-accent);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .order-cta:hover { background: var(--color-accent-700); }
+</style>

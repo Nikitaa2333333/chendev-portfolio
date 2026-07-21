@@ -6,8 +6,10 @@ export default defineConfig({
   // Боевой домен (Sprinthost, деплой по FTP из GitHub Actions — см. ASTRO_DEPLOY_PLAN.md).
   // Сайт живёт в корне домена, base не нужен (withBase-хелперы становятся no-op).
   site: 'https://chendev1.ru',
-  // Карта сайта для Яндекс.Вебмастера и Search Console; /ds — служебная, не индексируем.
-  integrations: [sitemap({ filter: (page) => !page.includes('/ds/') })],
+  // Карта сайта для Яндекс.Вебмастера и Search Console.
+  // /ds (эталоны) и /order (форма) — служебные, стоят noindex: в карту не кладём,
+  // иначе поиску уходят противоречивые сигналы «не индексируй» + «вот адрес».
+  integrations: [sitemap({ filter: (page) => !page.includes('/ds/') && !page.includes('/order/') })],
   vite: {
     plugins: [tailwindcss()],
   },
