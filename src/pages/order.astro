@@ -37,6 +37,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
               inputmode="tel"
               autocomplete="tel"
               placeholder="+7 900 000 00 00"
+              maxlength="16"
               data-phone
             />
             <span class="field__error" data-error="phone"></span>
@@ -247,6 +248,23 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     const submit = form.querySelector<HTMLButtonElement>('[data-submit]');
     const note = form.querySelector<HTMLElement>('[data-form-error]');
 
+    // Маска ввода: что бы человек ни набирал или вставлял, в поле остаётся
+    // «+7 900 000 00 00». Лишние цифры просто не влезают — раньше можно было
+    // набить 26 знаков, и ошибка всплывала только при отправке.
+    const formatRu = (raw: string): string => {
+      const digits = raw.replace(/\D+/g, '');
+      if (!digits) return '';               // поле очистили — оставляем пустым
+      // Ведущие 8 и 7 — это код страны, а не первая цифра номера.
+      let d = digits[0] === '8' || digits[0] === '7' ? digits.slice(1) : digits;
+      d = d.slice(0, 10);
+      let out = '+7';                       // набрали одну «8» — сразу показываем +7
+      if (d.length) out += ' ' + d.slice(0, 3);
+      if (d.length > 3) out += ' ' + d.slice(3, 6);
+      if (d.length > 6) out += ' ' + d.slice(6, 8);
+      if (d.length > 8) out += ' ' + d.slice(8, 10);
+      return out;
+    };
+
     // Российский номер: 10 цифр после кода страны. Принимаем +7…, 8…, 7…
     // и просто 10 цифр — человек не должен угадывать формат.
     const normalizeRu = (raw: string): string | null => {
@@ -267,15 +285,44 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       if (note) { note.hidden = true; note.textContent = ''; }
     };
 
-    const showErrors = (errors: Record<string, string>) => {
+    // focus=false для проверки на blur: иначе человек, уходящий из поля,
+    // тут же затягивался бы обратно и не мог перейти дальше.
+    const showErrors = (errors: Record<string, string>, focus = true) => {
       for (const [field, message] of Object.entries(errors)) {
         const el = form.querySelector<HTMLElement>(`[data-error="${field}"]`);
         const input = form.querySelector<HTMLInputElement>(`[name="${field}"]`);
         if (el) { el.textContent = message; el.setAttribute('data-shown', ''); }
         if (input) input.setAttribute('aria-invalid', 'true');
       }
-      form.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus();
+      if (focus) form.querySelector<HTMLInputElement>('[aria-invalid="true"]')?.focus();
     };
+
+    // Форматируем на лету. Каретку держим в конце — поле заполняют слева
+    // направо, а при вставке номера целиком это единственное разумное место.
+    const phoneInput = form.querySelector<HTMLInputElement>('[data-phone]');
+    phoneInput?.addEventListener('input', () => {
+      const before = phoneInput.value;
+      const after = formatRu(before);
+      if (after !== before) {
+        phoneInput.value = after;
+        phoneInput.setSelectionRange(after.length, after.length);
+      }
+      // Человек исправляет номер — гасим прежнюю ошибку, не дожидаясь отправки.
+      if (phoneInput.getAttribute('aria-invalid')) {
+        phoneInput.removeAttribute('aria-invalid');
+        const el = form.querySelector<HTMLElement>('[data-error="phone"]');
+        if (el) { el.textContent = ''; el.removeAttribute('data-shown'); }
+      }
+    });
+
+    // Ошибку показываем при уходе из поля, а не только по кнопке —
+    // человек узнаёт о проблеме сразу, а не в конце анкеты.
+    phoneInput?.addEventListener('blur', () => {
+      const v = phoneInput.value.trim();
+      if (v && !normalizeRu(v)) {
+        showErrors({ phone: 'Похоже, номер неполный. Российский формат: +7 900 000 00 00' }, false);
+      }
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
