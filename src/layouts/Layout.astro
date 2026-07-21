@@ -130,7 +130,9 @@ const canonical = new URL(
   /* ── Плавающая кнопка «Заказать сайт» ──
      Fixed снизу справа, живёт на всех страницах и не уезжает при скролле.
      Сплошной акцент без теней и прозрачностей (правило 2). Кнопка «← к работам»
-     на кейсах прижата к ЛЕВОМУ верхнему углу — не пересекаются. */
+     на кейсах прижата к ЛЕВОМУ верхнему углу — не пересекаются.
+     Форма прямоугольная с --radius-card (4px), как плитки работ: от пилюль
+     в интерфейсе уходим, скругление одно на весь сайт. */
   .order-cta {
     position: fixed;
     right: 15px;
@@ -143,7 +145,7 @@ const canonical = new URL(
     line-height: 1;
     color: var(--color-paper-white);
     background: var(--color-accent);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-card);
     text-decoration: none;
     white-space: nowrap;
   }

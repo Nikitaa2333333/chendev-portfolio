@@ -26,22 +26,43 @@ if (!empty($_POST['company'])) {
     exit(json_encode(['ok' => true]));
 }
 
-$name  = trim((string)($_POST['name']  ?? ''));
-$phone = trim((string)($_POST['phone'] ?? ''));
-$about = trim((string)($_POST['about'] ?? ''));
+$name   = trim((string)($_POST['name']   ?? ''));
+$phone  = trim((string)($_POST['phone']  ?? ''));
+$social = trim((string)($_POST['social'] ?? ''));
+$about  = trim((string)($_POST['about']  ?? ''));
+
+/**
+ * Российский номер → +7XXXXXXXXXX. Принимаем +7…, 8…, 7… и просто 10 цифр:
+ * человек не должен угадывать формат. null — если номер не похож на РФ.
+ */
+$normalizeRu = static function (string $raw): ?string {
+    $d = preg_replace('/\D+/', '', $raw);
+    if (strlen($d) === 11 && ($d[0] === '8' || $d[0] === '7')) {
+        $d = substr($d, 1);
+    }
+    if (strlen($d) !== 10 || !preg_match('/^[3489]/', $d)) {
+        return null;
+    }
+    return '+7' . $d;
+};
 
 $errors = [];
-if ($name === '' || mb_strlen($name) > 100) {
-    $errors['name'] = 'Как к вам обращаться?';
+
+// Отдельные поля необязательны, но нужен хоть один способ ответить.
+if ($phone === '' && $social === '') {
+    $errors['phone'] = 'Оставьте телефон или ссылку на соцсеть — иначе я не смогу ответить';
+} elseif ($phone !== '') {
+    $normalized = $normalizeRu($phone);
+    if ($normalized === null) {
+        $errors['phone'] = 'Похоже, номер неполный. Российский формат: +7 900 000 00 00';
+    } else {
+        $phone = $normalized;
+    }
 }
-// Телефон принимаем в любом виде, проверяем только количество цифр (10–15).
-$digits = preg_replace('/\D+/', '', $phone);
-if (strlen($digits) < 10 || strlen($digits) > 15) {
-    $errors['phone'] = 'Проверьте номер телефона';
-}
-if (mb_strlen($about) > 1000) {
-    $errors['about'] = 'Слишком длинно';
-}
+
+if (mb_strlen($name) > 100)    { $errors['name']   = 'Слишком длинно'; }
+if (mb_strlen($social) > 200)  { $errors['social'] = 'Слишком длинно'; }
+if (mb_strlen($about) > 1000)  { $errors['about']  = 'Слишком длинно'; }
 
 if ($errors) {
     http_response_code(422);
@@ -67,15 +88,11 @@ if (!is_array($config) || empty($config['token']) || empty($config['chat_id'])) 
 // HTML-режим Telegram: экранируем то, что пришло от пользователя.
 $esc = static fn (string $s): string => htmlspecialchars($s, ENT_NOQUOTES, 'UTF-8');
 
-$lines = [
-    '<b>Заявка с сайта</b>',
-    '',
-    'Имя: ' . $esc($name),
-    'Телефон: ' . $esc($phone),
-];
-if ($about !== '') {
-    $lines[] = 'Чем занимается: ' . $esc($about);
-}
+$lines = ['<b>Заявка с сайта</b>', ''];
+$lines[] = 'Имя: ' . ($name !== '' ? $esc($name) : '—');
+if ($phone !== '')  { $lines[] = 'Телефон: ' . $esc($phone); }
+if ($social !== '') { $lines[] = 'Соцсеть: ' . $esc($social); }
+if ($about !== '')  { $lines[] = 'Чем занимается: ' . $esc($about); }
 
 $ch = curl_init('https://api.telegram.org/bot' . $config['token'] . '/sendMessage');
 curl_setopt_array($ch, [

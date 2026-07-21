@@ -7,7 +7,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 
 <Layout
   title="Заказать сайт — Никита Чендев"
-  description="Оставьте заявку: имя, телефон и пара слов о деле. Отвечу в течение дня и бесплатно сделаю первую концепцию вашего сайта."
+  description="Оставьте заявку: имя, телефон или ссылка на соцсеть. Отвечу в течение дня и бесплатно сделаю первую концепцию вашего сайта."
   noindex={true}
 >
   <main class="order">
@@ -19,13 +19,16 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       <div class="order__form-wrap" data-form-wrap>
         <h1 class="order__title">{typo('Заказать сайт')}</h1>
         <p class="order__lead">
-          {typo('Три поля — больше ничего не нужно. Отвечу в течение дня и бесплатно сделаю первую концепцию вашего сайта.')}
+          {typo('Отвечу в течение дня и бесплатно сделаю первую концепцию вашего сайта.')}
+        </p>
+        <p class="order__note">
+          {typo('Все поля необязательные — заполняйте как удобно. Оставьте телефон или ссылку на соцсеть, чтобы я мог ответить. Свяжусь в любом случае.')}
         </p>
 
         <form class="form" action={withBase('/send.php')} method="post" data-form novalidate>
           <label class="field">
             <span class="field__label">{typo('Как вас зовут')}</span>
-            <input class="field__input" type="text" name="name" required autocomplete="name" />
+            <input class="field__input" type="text" name="name" autocomplete="name" />
             <span class="field__error" data-error="name"></span>
           </label>
 
@@ -35,12 +38,24 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
               class="field__input"
               type="tel"
               name="phone"
-              required
               inputmode="tel"
               autocomplete="tel"
               placeholder="+7 900 000 00 00"
+              data-phone
             />
             <span class="field__error" data-error="phone"></span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">{typo('Ссылка на соцсеть')}</span>
+            <input
+              class="field__input"
+              type="text"
+              name="social"
+              autocomplete="url"
+              placeholder="@username, t.me/…, vk.com/…"
+            />
+            <span class="field__error" data-error="social"></span>
           </label>
 
           <label class="field">
@@ -75,11 +90,12 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 </Layout>
 
 <style>
-  /* Страница-форма: спокойный белый экран, ничего кроме задачи.
-     Ширина по мере набора (--measure), поля 15px как везде. */
+  /* Страница-форма на сплошном синем: экран целиком в акценте, текст белый.
+     Скруглений-пилюль нет — прямоугольники с --radius-card (4px), как плитки. */
   .order {
     min-height: 100svh;
     padding: 96px 15px var(--section-pad-y);
+    background: var(--color-accent);
   }
   .order__inner {
     max-width: var(--measure);
@@ -93,20 +109,25 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     font-size: var(--text-h3);
     font-weight: var(--fw-black);
     line-height: 1;
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
     text-decoration: none;
   }
   .order__title {
     font-size: var(--text-h1);
     font-weight: var(--fw-black);
     line-height: 1.05;
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
   }
   /* «Единый набор»: лид отбит от заголовка на свой межабзацный интервал. */
   .order__lead {
     margin-top: calc(var(--text-lead) * 0.8);
     font-size: var(--text-lead);
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
+  }
+  .order__note {
+    margin-top: calc(var(--text-body) * 0.8);
+    font-size: var(--text-body);
+    color: var(--color-paper-white);
   }
 
   .form {
@@ -121,8 +142,9 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     margin-bottom: 8px;
     font-size: var(--text-body);
     font-weight: var(--fw-medium);
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
   }
+  /* Поле — белый прямоугольник на синем: внутри белого текст чёрный (правило 1). */
   .field__input {
     width: 100%;
     padding: 14px 16px;
@@ -131,47 +153,51 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     font-weight: var(--fw-medium);
     color: var(--color-ink-black);
     background: var(--color-paper-white);
-    border: var(--border-w) solid var(--color-ink-black);
+    border: var(--border-w) solid var(--color-paper-white);
     border-radius: var(--radius-card);
   }
   .field__input:focus {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+    outline: 2px solid var(--color-paper-white);
+    outline-offset: 3px;
   }
   /* Плейсхолдер — зафиксированное исключение из правила контраста:
      иначе он неотличим от уже введённого текста. */
   .field__input::placeholder { color: #6b7280; }
-  .field__input[aria-invalid='true'] { border-color: var(--color-accent); }
+  /* Ошибочное поле: тёплая рамка + такая же подпись под ним. На синем это
+     единственный цвет, который читается как «внимание» и не спорит с белым. */
+  .field__input[aria-invalid='true'] { border-color: var(--color-cream-wash); }
 
   .field__error {
     display: none;
     margin-top: 6px;
     font-size: var(--text-caption);
-    font-weight: var(--fw-medium);
-    color: var(--color-accent);
+    font-weight: var(--fw-black);
+    color: var(--color-cream-wash);
   }
   .field__error[data-shown] { display: block; }
 
+  /* Кнопка — белый прямоугольник, чёрный текст. Тот же радиус, что у полей. */
   .form__submit {
     align-self: flex-start;
     padding: 16px 32px;
     font-family: var(--font-sans);
     font-size: var(--text-lead);
     font-weight: var(--fw-medium);
-    color: var(--color-paper-white);
-    background: var(--color-accent);
-    border: none;
-    border-radius: var(--radius-pill);
+    color: var(--color-ink-black);
+    background: var(--color-paper-white);
+    border: var(--border-w) solid var(--color-paper-white);
+    border-radius: var(--radius-card);
     cursor: pointer;
   }
-  .form__submit:hover { background: var(--color-accent-700); }
+  .form__submit:hover { background: var(--color-sky-tint); border-color: var(--color-sky-tint); }
   .form__submit[disabled] { cursor: progress; }
 
   .form__note {
     font-size: var(--text-body);
-    font-weight: var(--fw-medium);
-    color: var(--color-accent);
+    font-weight: var(--fw-black);
+    color: var(--color-cream-wash);
   }
+  .form__note :global(a) { color: var(--color-cream-wash); }
 
   /* Honeypot: убран из потока и от скринридеров, но заполняем-доступен ботам. */
   .hp {
@@ -187,7 +213,8 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     margin-top: var(--spacing-24);
     font-size: var(--text-lead);
     font-weight: var(--fw-medium);
-    color: var(--color-ink-black);
+    color: var(--color-paper-white);
+    text-decoration-color: var(--color-sky-tint);
   }
 
   @media (max-width: 719px) {
@@ -197,8 +224,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
 </style>
 
 <script>
-  // Отправка без перезагрузки. Без JS форма работает как обычный POST на
-  // send.php (сервер ответит JSON — редкий кейс, но заявка не теряется).
+  // Отправка без перезагрузки. Без JS форма работает как обычный POST на send.php.
   function initOrderForm() {
     const form = document.querySelector<HTMLFormElement>('[data-form]');
     if (!form) return;
@@ -207,6 +233,17 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     const done = document.querySelector<HTMLElement>('[data-done]');
     const submit = form.querySelector<HTMLButtonElement>('[data-submit]');
     const note = form.querySelector<HTMLElement>('[data-form-error]');
+
+    // Российский номер: 10 цифр после кода страны. Принимаем +7…, 8…, 7…
+    // и просто 10 цифр — человек не должен угадывать формат.
+    const normalizeRu = (raw: string): string | null => {
+      let d = raw.replace(/\D+/g, '');
+      if (d.length === 11 && (d[0] === '8' || d[0] === '7')) d = d.slice(1);
+      if (d.length !== 10) return null;
+      // Мобильные и городские РФ начинаются с 3/4/8/9 — 0,1,2 отсекаем как опечатку.
+      if (!/^[3489]/.test(d)) return null;
+      return '+7' + d;
+    };
 
     const clearErrors = () => {
       form.querySelectorAll<HTMLElement>('[data-error]').forEach((el) => {
@@ -231,14 +268,21 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
       e.preventDefault();
       clearErrors();
 
-      // Своя проверка до отправки — человек видит ошибку сразу, без ожидания сети.
       const data = new FormData(form);
-      const name = String(data.get('name') ?? '').trim();
       const phone = String(data.get('phone') ?? '').trim();
+      const social = String(data.get('social') ?? '').trim();
       const local: Record<string, string> = {};
-      if (!name) local.name = 'Как к вам обращаться?';
-      const digits = phone.replace(/\D+/g, '');
-      if (digits.length < 10 || digits.length > 15) local.phone = 'Проверьте номер телефона';
+
+      // Поля по отдельности необязательны, но ответить как-то надо:
+      // просим либо телефон, либо соцсеть.
+      if (!phone && !social) {
+        local.phone = 'Оставьте телефон или ссылку на соцсеть — иначе я не смогу ответить';
+      } else if (phone) {
+        const normalized = normalizeRu(phone);
+        if (!normalized) local.phone = 'Похоже, номер неполный. Российский формат: +7 900 000 00 00';
+        else data.set('phone', normalized);
+      }
+
       if (Object.keys(local).length) { showErrors(local); return; }
 
       if (submit) { submit.disabled = true; submit.textContent = 'Отправляю…'; }
