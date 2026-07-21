@@ -45,6 +45,11 @@ const canonical = new URL(
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
 
+    {/* Подтверждение прав в Google Search Console. НЕ УДАЛЯТЬ — Google
+        перепроверяет тег, без него права слетят. Права в Яндекс.Вебмастере
+        держит файл public/yandex_59714c75498b0267.html — его тоже не трогать. */}
+    <meta name="google-site-verification" content="zdsVOzOPQYukg6iFgMxBSXA6wpm8E3wRPNMq6kYuBfs" />
+
     <title>{title}</title>
 
     {/* Open Graph + Twitter Card — превью ссылки в Telegram/WhatsApp/соцсетях */}
