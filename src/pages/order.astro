@@ -74,9 +74,7 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
           <button class="form__submit" type="submit" data-submit>{typo('Отправить заявку')}</button>
           {/* Пометка живёт ПОД кнопкой — не задерживает на входе в форму,
               а объясняет уже после того, как человек увидел поля. */}
-          <p class="order__note">
-            {typo('Все поля необязательные — заполняйте как удобно. Оставьте телефон или ссылку на соцсеть, чтобы я мог ответить.')}
-          </p>
+          <p class="order__note">{typo('Все поля необязательные — заполняйте как удобно.')}</p>
           <p class="form__note" data-form-error hidden></p>
         </form>
       </div>
@@ -102,17 +100,25 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
     max-width: var(--measure);
     margin: 0 auto;
   }
+  /* Та же кнопка возврата, что на кейсах: mix-blend-mode difference
+     инвертирует всё, что проезжает под ней при скролле, — на синем фоне
+     она читается жёлто-оранжевой, на белых полях остаётся контрастной.
+     Простой белый текст на синем такого наложения не давал. */
   .order__back {
     position: fixed;
     top: 14px;
     left: 15px;
     z-index: 50;
+    display: inline-block;
     font-size: var(--text-h3);
     font-weight: var(--fw-black);
     line-height: 1;
     color: var(--color-paper-white);
     text-decoration: none;
+    mix-blend-mode: difference;
+    will-change: transform;
   }
+  @media (prefers-reduced-motion: reduce) { .order__back { will-change: auto; } }
   .order__title {
     font-size: var(--text-h1);
     font-weight: var(--fw-black);
