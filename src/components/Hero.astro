@@ -42,10 +42,9 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
         с уникальным дизайном за две недели и бесплатной гарантией один год.
       </p>
       <div class="hero__links">
-        <a href="https://t.me/">Telegram</a>
-        <a href="#">Макс</a>
-        <a href="mailto:chendev2003@gmail.com">Почта</a>
-        <a href="#">Instagram</a>
+        <a href="https://t.me/chendev1" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <a href="mailto:chendev.nik@gmail.com">Почта</a>
+        <a href="tel:+79531216477">+7 953 121 64 77</a>
       </div>
     </div>
   </div>
@@ -152,6 +151,9 @@ const withBase = (p: string) => import.meta.env.BASE_URL.replace(/\/$/, '') + p;
   .hero__links a {
     font-size: var(--text-lead);
     font-weight: var(--fw-medium);
+    /* Номер не разрывается посреди цифр: группы «953 121 64 77» должны
+       остаться одной строкой, переносится только сама ссылка целиком. */
+    white-space: nowrap;
     color: var(--color-paper-white);
     text-decoration: underline;
     text-decoration-thickness: 1px;
