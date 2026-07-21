@@ -2,15 +2,13 @@
 /**
  * Приём заявки с /order/ → сообщение в Telegram.
  *
- * ТОКЕН ЗДЕСЬ НЕ ХРАНИТСЯ. Репозиторий публичный, а деплой (FTP-Deploy-Action)
- * синхронизирует public_html с dist/ и стирает всё лишнее — поэтому конфиг
- * лежит ЭТАЖОМ ВЫШЕ корня сайта, куда деплой не дотягивается:
+ * ТОКЕН ЗДЕСЬ НЕ ХРАНИТСЯ и его нет в репозитории (репо публичный).
+ * tg-config.php собирается на этапе деплоя из GitHub Secrets
+ * (TG_BOT_TOKEN / TG_CHAT_ID) — см. .github/workflows/deploy.yml.
+ * Наружу файл не отдаётся: прямой доступ закрыт в .htaccess.
  *
- *   /domains/chendev1.ru/tg-config.php   ← залить по FTP ОДИН РАЗ вручную
- *
- *   <?php return ['token' => '123456:AA...', 'chat_id' => '123456789'];
- *
- * Файл вне public_html — по HTTP его не скачать даже зная имя.
+ * Поменять бота или получателя — обновить секреты в GitHub и передеплоить,
+ * править код не нужно.
  */
 
 declare(strict_types=1);
@@ -50,13 +48,21 @@ if ($errors) {
     exit(json_encode(['ok' => false, 'errors' => $errors], JSON_UNESCAPED_UNICODE));
 }
 
-$configPath = __DIR__ . '/../tg-config.php';
-if (!is_file($configPath)) {
-    error_log('send.php: нет tg-config.php этажом выше public_html');
+// Конфиг ищем в двух местах: рядом (его кладёт деплой из GitHub Secrets —
+// прямой доступ закрыт .htaccess) и этажом выше public_html (ручной вариант,
+// если когда-нибудь захочется держать токен вне зоны деплоя).
+$config = null;
+foreach ([__DIR__ . '/tg-config.php', __DIR__ . '/../tg-config.php'] as $path) {
+    if (is_file($path)) {
+        $config = require $path;
+        break;
+    }
+}
+if (!is_array($config) || empty($config['token']) || empty($config['chat_id'])) {
+    error_log('send.php: не найден или пуст tg-config.php');
     http_response_code(500);
     exit(json_encode(['ok' => false, 'error' => 'config'], JSON_UNESCAPED_UNICODE));
 }
-$config = require $configPath;
 
 // HTML-режим Telegram: экранируем то, что пришло от пользователя.
 $esc = static fn (string $s): string => htmlspecialchars($s, ENT_NOQUOTES, 'UTF-8');

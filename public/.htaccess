@@ -15,3 +15,10 @@
   RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
   RewriteRule ^index\.html$ https://%{HTTP_HOST}/ [L,R=301,NE]
 </IfModule>
+
+# Конфиг Telegram-бота (токен) — только для PHP изнутри, наружу не отдавать.
+# Обычно PHP исполняется и содержимое не видно, но если PHP вдруг отключат,
+# файл отдался бы простым текстом вместе с токеном. Эта заглушка закрывает риск.
+<Files "tg-config.php">
+  Require all denied
+</Files>

@@ -30,6 +30,24 @@ jobs:
           npm install
           npm run build
 
+      # Конфиг Telegram-бота собираем ИЗ СЕКРЕТОВ на этапе деплоя: токена нет
+      # ни в репозитории (он публичный), ни в истории коммитов. Файл попадает
+      # в public_html, но наружу не отдаётся — .htaccess закрывает прямой
+      # доступ, а PHP его исполняет, а не показывает.
+      - name: Write Telegram config
+        run: |
+          # Экранируем кавычку — иначе значение секрета могло бы разорвать строку PHP.
+          php_escape() { printf '%s' "$1" | sed "s/'/\\\\'/g"; }
+          {
+            printf '<?php return [\n'
+            printf "    'token' => '%s',\n" "$(php_escape "$TG_BOT_TOKEN")"
+            printf "    'chat_id' => '%s',\n" "$(php_escape "$TG_CHAT_ID")"
+            printf '];\n'
+          } > ./dist/tg-config.php
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
